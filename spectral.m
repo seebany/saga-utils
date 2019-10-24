@@ -140,7 +140,10 @@ if ~isnan(vmag) && ~isnan(vang)
                     
                     % normalized?
                     if normalize == 0
-                        sumsquared = (R_obs_c - R_rytov_c).^2;
+%                         sumsquared = (R_obs_c - R_rytov_c).^2;
+                        % Try an alternate to make a best fit in the log
+                        % sense.  SDB 10/10/18.
+                        sumsquared = (log10(R_obs_c) - log10(R_rytov_c)).^2;
                     else
                         sumsquared = ((R_obs_c - R_rytov_c) ./ R_obs_c).^2;
                     end
