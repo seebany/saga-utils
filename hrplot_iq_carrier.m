@@ -826,12 +826,23 @@ for i_dtau = 1:length(v_dtau)
                             
                             % normalized?
                             if normalize == 0
-                                sumsquared = (R_obs_c - R_rytov_c).^2;
+%                                 sumsquared = (R_obs_c - R_rytov_c).^2;
+% Try an alternate to make a better fit to the log spectra. SDB 10/10/18
+% Kshitija suggested enforcing the lower wavenumbers to avoid Nyquist
+% aliasing and fitting to noise.
+rows = find(k_par < 5e-2);%1e-2);
+sumsquared = max(abs(log10(R_obs_c(rows)) - log10(R_rytov_c(rows))));
+% sumsquared = abs(log10(R_obs_c(rows)) - log10(R_rytov_c(rows)));
+%                                sumsquared = (log10(R_obs_c(rows)) - log10(R_rytov_c(rows))).^2;
+%                                 sumsquared = (R_obs_c(rows) - R_rytov_c(rows)).^2;
+                                
                             else
                                 sumsquared = ((R_obs_c - R_rytov_c) ./ R_obs_c).^2;
                             end
                             
-                            epsqr = mean(sumsquared(:), 'omitnan');
+%                             epsqr = mean(sumsquared(:), 'omitnan');
+% Try an alternate metric to make a better fit. SDB 10/11/18
+                                epsqr = sum(sumsquared(:), 'omitnan');%/(numel(k_par_index)-2);%std(R_obs_c)^2;
                             ep(i, j) = epsqr;
                             %                             if epsqr > 10
                             %                                 ep(i,j) = NaN;
@@ -876,34 +887,34 @@ for i_dtau = 1:length(v_dtau)
             end
             xl = [-inf, inf]; %xl = [1e-3 1e-1];
             %             return;
-            for rr = 1:size(rcvr_op, 1)
-                figall = figure;
-                if welch
-                    loglog(k_par, Spwr_obs_welch{tt, rr}, 'b', ...
-                        k_par, Sph_obs_welch{tt, rr}, 'k', ...
-                        k_par, R_obs_welch{tt}(:, rr), 'r');
-                else
-                    %                     hold on;
-                    loglog(k_par, Spwr_obs_period{tt, rr}, 'c', ...
-                        k_par, Sph_obs_period{tt, rr}, 'g', ...
-                        k_par, R_obs_period{tt}(:, rr), 'm');
-                end
-                xlim(xl);
-                ylim([10^-6, 10^2]);
-                %                     set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
-                title('Observed Log-Amplitude to Phase Power Spectrum Ratio');
-                legend({'Log-Amplitude', 'Phase', 'Ratio'}, 'location', 'southwest');
-                xlabel(['Wavenumber along Drift Velocity Direction $\kappa_v$ [rad/m], ', sitenum_op{rr, :}]);
-                %                     legend({'Phase','Log_{10} Power'},'location','best')
-                tightfig;
-                plotname = [year, '_', doy, '_PRN', num2str(prn), '_', sitenum_op{rr, :}, '_ObservedRatio_', ...
-                    num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
-                    datestr(init_time, 'HHMM'), 'UT'];
-                plotpath = [op_path, plotname, suffix];
-                saveas(gcf, plotpath, format);
-                close;
-            end
-            fighat = figure;
+%             for rr = 1:size(rcvr_op, 1)
+%                 figall = figure;
+%                 if welch
+%                     loglog(k_par, Spwr_obs_welch{tt, rr}, 'b.-', ...
+%                         k_par, Sph_obs_welch{tt, rr}, 'k.-', ...
+%                         k_par, R_obs_welch{tt}(:, rr), 'r.-');
+%                 else
+%                     %                     hold on;
+%                     loglog(k_par, Spwr_obs_period{tt, rr}, 'c', ...
+%                         k_par, Sph_obs_period{tt, rr}, 'g', ...
+%                         k_par, R_obs_period{tt}(:, rr), 'm');
+%                 end
+%                 xlim(xl);
+%                 ylim([10^-6, 10^2]);
+%                 %                     set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
+%                 title('Observed Log-Amplitude to Phase Power Spectrum Ratio');
+%                 legend({'Log-Amplitude', 'Phase', 'Ratio'}, 'location', 'southwest');
+%                 xlabel(['Wavenumber along Drift Velocity Direction $\kappa_v$ [rad/m], ', sitenum_op{rr, :}]);
+%                 %                     legend({'Phase','Log_{10} Power'},'location','best')
+%                 tightfig;
+%                 plotname = [year, '_', doy, '_PRN', num2str(prn), '_', sitenum_op{rr, :}, '_ObservedRatio_', ...
+%                     num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
+%                     datestr(init_time, 'HHMM'), 'UT'];
+%                 plotpath = [op_path, plotname, suffix];
+%                 saveas(gcf, plotpath, format);
+%                 close;
+%             end
+%             fighat = figure;
             if size(rcvr_op, 1) > 2
                 set(gcf, 'papersize', [8, 2 * size(rcvr_op, 1)], ...
                     'paperposition', [0, 0, 8, 2 * size(rcvr_op, 1)], ...
@@ -932,8 +943,8 @@ for i_dtau = 1:length(v_dtau)
                         'B, -', ...
                         'location', 'northwest', 'orientation', 'horizontal');
                 else
-                    loglog(sp(rr), k_par_c, R_obs_c(:, rr), 'r', ...
-                        k_par_c, R_rytov_hat_c{tt}(:, rr), 'c');
+                    loglog(sp(rr), k_par_c, R_obs_c(:, rr), 'r.-', ...
+                        k_par_c, R_rytov_hat_c{tt}(:, rr), 'c.-');
                     legend(sp(rr), ['Observed, ', sitenum_op{rr, :}], ...
                         ['Rytov, $\hat{L}=', num2str(L_hat(:, rr)/10^3), ...
                         '$, $\hat{z}=', num2str(z_hat(:, rr)/10^3), '$'], ...
@@ -958,8 +969,8 @@ for i_dtau = 1:length(v_dtau)
                 datestr(init_time, 'HHMM'), 'UT_', num2str(factor), '_', num2str(zmax/1000)];
             plotpath = [op_path, plotname, suffix];
             saveas(gcf, plotpath, format);
-            %             print(gcf, [plotpath, '_pver.png'], '-dpng', '-r600');
-            %                 close;
+%                         print(gcf, [plotpath, '_pver.png'], '-dpng', '-r600');
+%                             close;
             
             close;
         else
