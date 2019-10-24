@@ -24,11 +24,11 @@ global home_dir;
 global mat_dir;
 [~, dummy] = system('echo $HOME');
 home_dir = [dummy(1:end-1), sep];
-
+ 
 if strcmp(cases_folder(end-4:end-1), 'pfrr')
     %path for Poker Flat data
     mat_dir = ['PFRR_Data', sep];
-    mat_dir = ['matfiles', sep];
+    mat_dir = ['matfiles', sep];%, num2str(yearin), sep, num2str(doyin), sep, '181011', sep];%datestr(date, 'yymmdd'),sep];
 else
     %folder_path for 2013 Calgary data
     mat_dir = ['Calgary_Data', sep];
@@ -74,7 +74,7 @@ SD = [];
 MEGA_MSP = [];
 MSP_days = [];
 SCINTEVENTS = [];
-%specify signal
+%specify signal: L1C1 = 0; L2CL = 2.
 for signal_type = 0 %[0, 2]
     for yearnum = yearlist
         year = num2str(yearnum, '%04i')
@@ -177,8 +177,8 @@ for signal_type = 0 %[0, 2]
             means4_doy = mean(MS4(:, 2));
             stds4_doy = std(MS4(:, 2));
             %fixed threshold
-            sp_fixed = 0.6;
-            s4_fixed = 0.4;
+            sp_fixed = 0.6; % Yang had as 0.6; I'm temporarily lowering to 0 just to get Vaisnavi's requested HR plot.
+            s4_fixed = 0.2; % Yang had as 0.4; Vaishnavi lowered to 0.2
             
             RCVR_OP = [];
             MSP_NUM = [];
@@ -193,6 +193,10 @@ for signal_type = 0 %[0, 2]
             
             RCVR_OP
             rcvr_op
+            % There are two thresholds used to compute the weighted
+            % scintillation number WSN.  The two thresholds are spth_hr0
+            % and spth_hr1. Here the first one is set to a fixed value and
+            % the second is set to the mean value for that day.
             spth_hr0 = sp_fixed;
             MSP_hr0 = MSP(MSP(:, 2) >= spth_hr0, :);
             MSP_hr0 = sortrows(MSP_hr0, 1);
@@ -252,8 +256,8 @@ for signal_type = 0 %[0, 2]
             e_common0 = [e_common(:, 1), t0(:, 4), t0(:, 5), ...
                 tf(:, 4), tf(:, 5), e_common(:, end)]
             %         keyboard;
-            TSP_hr0_short = TSP_hr0(1:10, :);
-            TSP_hrv0_short = TSP_hrv0(1:10, :);
+            TSP_hr0_short = TSP_hr0(1:min(10,size(TSP_hr0,1)), :);
+            TSP_hrv0_short = TSP_hrv0(1:min(10,size(TSP_hr0,1)), :);
             TSP_hr = TSP_hr0;
             
             %         keyboard;
@@ -307,16 +311,20 @@ for signal_type = 0 %[0, 2]
                 %                 prnlist = [23,10,13];
                 %     case '050'
                 %         prnlist = [17];
-                case '051'
-                    prnlist = [29];
-%                 case '076'
-%                     prnlist = [27, 22, 18];
+%                case '051'
+%                    prnlist = [29];
+                 case '076'
+                    % prnlist = 27;%18;%[19, 18, 22, 27];
                     %         prnlist = [27];
                     %     case '077'
                     %         prnlist = [25 29 31];
                     %         prnlist = 1;                    
-                case '280'
-                    prnlist = [3];
+%                 case '280'
+%                     prnlist = [3];
+% %                 case '326'
+% %                     prnlist = [14];
+% %                 case '049'
+% %                     prnlist = [5];
             end
             length(prnlist)
             for kk = 1:min(3, length(prnlist))
@@ -368,9 +376,18 @@ for signal_type = 0 %[0, 2]
                         %             case {5,25,29}
                         %                 init_time = datenum([2015 3 17 9 0 0]);
                         %                 xtime = [-1800;1800];
-                        %             case {19,27,22}
-                        %                 init_time = datenum([2015 3 17 13 0 0]);
-                        %                 xtime = [0;1800];
+                                     case {18,27,22}
+                                         init_time = datenum([2015 3 17 13 0 0]);
+                                         xtime = [60*8;60*25];
+%                         case {19}
+%                             init_time = datenum([2015 3 17 15 0 0]);
+%                             xtime = [60*0; 60*30];
+%                         case {14}
+%                             init_time = datenum([2014 11 22 22 0 0]);
+%                             xtime = [60*29; 60*49];
+%                         case {5}
+%                             init_time = datenum([2015 2 18  11 0 0]);
+%                             xtime = [60*17; 60*29];
                         %             case {21}
                         %                 init_time = datenum([2015 3 17 11 0 0]);
                         %                 xtime = [0;3600*3];
@@ -383,9 +400,11 @@ for signal_type = 0 %[0, 2]
                         %             case 1
                         %                 init_time = datenum([2015 3 18 15 2 0]);
                         %                 xtime = [-600;600];
-%                         case {3}
-%                             init_time = datenum([2015, 10, 7, 6, 0, 0]);
-%                             xtime = [120; 1200];
+                        case {3}
+                            init_time = datenum([2015 10 7 6 0 0]);
+                            xtime = [120; 250];
+%                         case {6}
+                            
                     end
                     
                     %                         keyboard;
