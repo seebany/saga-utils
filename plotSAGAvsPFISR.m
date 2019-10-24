@@ -253,7 +253,7 @@ if nargin ~= 0
                 t_pfisr = datevec([tmin, tmax])
                 mflag = 'lat';
                 mflag = 'dtau';
-                [megadata, lat, dtau, ebar] = plotPFISRvs(t_pfisr(1, :), t_pfisr(2, :), mflag, vflag);
+%                 [megadata, lat, dtau, ebar] = plotPFISRvs(t_pfisr(1, :), t_pfisr(2, :), mflag, vflag);
                 if ilat ~= 1
                     t_pfisr
                     [lat, ebar(:, :, 1)']
