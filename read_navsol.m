@@ -26,11 +26,14 @@ if ~isempty(navfilestruct)
     NAV = [];
     for jj = 1:size(navfilestruct, 1)
         navfile = navfilestruct(jj, :);
+        % SDB 1/3/20 add check for existing but empty file.
+        if navfile.bytes > 0
         navfilename = dlmread([folder_path, 'txt', sep, navfile.name]);
         st = datestr(gps2utc(navfilename(1, 1:2)), 'HHMM-');
         se = datestr(gps2utc(navfilename(end, 1:2)), 'HHMM UT');
         %         disp([navfile.name,' actually has data for ',st,se]);
         NAV = [NAV; navfilename];
+        end
     end
     
     NAV = [NAV; navfilename0];

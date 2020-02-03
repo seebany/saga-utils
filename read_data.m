@@ -22,11 +22,15 @@ if ~isempty(scintfilestruct)
     SCINT = [];
     for jj = 1:size(scintfilestruct, 1)
         scintfile = scintfilestruct(jj, :);
+    % SDB 1/3/20 insert a check for a file that exists but is empty, e.g.,
+    % 2019/367/grid161/txt/scint_dataout_2019_357_0700.log has 0 bytes.
+    if scintfile.bytes > 0
         scintfilename = dlmread(strcat([folder_path, 'txt', sep, scintfile.name]));
         %         st = datestr(gps2utc(scintfilename(1,1:2)),'HHMM-');
         %         se = datestr(gps2utc(scintfilename(end,1:2)),'HHMM UT');
         %         disp([scintfile.name,' actually has data for ',st,se]);
         SCINT = [SCINT; scintfilename];
+    end
     end
     SCINT = [SCINT; scintfilename0];
     
