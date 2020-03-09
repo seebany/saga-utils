@@ -2,6 +2,8 @@ function [] = plotlz(prnlist, tstt, vflag)
 [prop, op_path0, MEGAVEST_path] = ver_chk;
 
 close all;
+init();
+[~, op_path] = ver_chk();
 dbstop if error;
 warning off;
 weimer_path = [MEGAVEST_path, filesep, 'Weimer', filesep, 'runs', filesep];
@@ -97,8 +99,8 @@ if ~isempty(matfilesname)
                 
                 if col(subi) == 5
                     bottomheight = topheight - thickness;
-                    rect_kk(kk, :) = patch(sp(subi), ...
-                        [x_kk, y_kk, y_kk, x_kk]', ...
+                    set(gcf,'CurrentAxes',sp(subi));
+                    rect_kk(kk, :) = patch([x_kk, y_kk, y_kk, x_kk]', ...
                         [bottomheight_kk, bottomheight_kk, topheight_kk, topheight_kk]', ...
                         'k', 'edgecolor', rx_color(sitenum_op{kk}), ...
                         'linewidth', 1.5, 'facealpha', 1/length(sitenum_op));
@@ -118,9 +120,9 @@ if ~isempty(matfilesname)
                                 b = layer(1, :);
                                 t = layer(2, :);
                                 if ~all(b == t)
+                                    set(gcf,'CurrentAxes',sp(subi))
                                     boxes_overlap = [boxes_overlap; ...
-                                        patch(sp(subi), ...
-                                        [repmat(MEGA_LZ(i, 1, 1), 1, size(layer, 2)); ...
+                                        patch([repmat(MEGA_LZ(i, 1, 1), 1, size(layer, 2)); ...
                                         repmat(MEGA_LZ(i, 1, 2), 2, size(layer, 2)); ...
                                         repmat(MEGA_LZ(i, 1, 1), 1, size(layer, 2))], ...
                                         [repmat(b, 2, 1); repmat(t, 2, 1)], ...
@@ -171,8 +173,10 @@ if ~isempty(matfilesname)
             end
         end
     end
-    set(sp, 'ytick', 100:100:650, 'yticklabel', 100:100:650);
-    ylim(sp, [50, 650]);
+    for subi = 1:length(col)
+        set(sp(subi), 'ytick', 100:200:1050, 'yticklabel', 100:200:1050);
+        ylim(sp(subi), [50, 1050]);
+    end
 else
     return;
 end
@@ -208,16 +212,19 @@ set(lg, 'position', ...
     [(1 - lgpos(3)) / 2, 0.005, lgpos(3), lgpos(4)]);
 
 h = get(sp(end), 'children');
-figcomp = figure;
-[~, ~, ~, op_path] = plotPFISR_NeTe(tmin, tmax, 'Ne');
-h_ = findobj(boxes_overlap, 'type', 'patch');
-copyobj(boxes_overlap, gca);
-set(gca, 'xtick', get(sp(end), 'xtick'));
-datetick('x', 'HH:MM', 'keepticks');
-set(gca, 'xlim', [tmin, tmax]);
 
+%If Pfsir_NeTe data avaialble
+flag_NeTe=0;
+if flag_NeTe==1
+    figcomp = figure;
+    [~, ~, ~, op_path] = plotPFISR_NeTe(tmin, tmax, 'Ne');
+    h_ = findobj(boxes_overlap, 'type', 'patch');
+    copyobj(boxes_overlap, gca);
+    set(gca, 'xtick', get(sp(end), 'xtick'));
+    datetick('x', 'HH:MM', 'keepticks');
+    set(gca, 'xlim', [tmin, tmax]);
+    saveas(figcomp, [op_path, 'PFISR_SAGA_LZ_PRN', num2str(prnlist), '_', year, '_', doy], format);
+end
 saveas(figbox, [op_path, 'SAGA_LZ_PRN', num2str(prnlist), '_', year, '_', doy], format);
-saveas(figcomp, [op_path, 'PFISR_SAGA_LZ_PRN', num2str(prnlist), '_', year, '_', doy], format);
-
 close all;
 end

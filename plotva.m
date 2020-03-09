@@ -165,7 +165,7 @@ for subi = 1:size(vest, 2)
             lblstr = ['(g) $v_c / v $'];
     end
     ylabel(sp(subi), lblstr);
-    xlim(sp, [rho_c, 1]);
+    xlim(sp(subi), [rho_c, 1]);
     xtick0 = get(sp(subi), 'xtick');
     %     set(sp(subi),'xtick',sort([min(CCVAL) xtick0 max(CCVAL)]));
     if subi ~= size(vest, 2)
@@ -178,6 +178,7 @@ for subi = 1:size(vest, 2)
         xlabel('$\rho_{cutoff}$');
     end
 end
-saveas(gcf, '../rhoc.eps', 'epsc2');
+saveas(gcf, '/data1/home/alopez35/mfigures/rhoc.png', 'eps');
+%saveas(gcf, '../rhoc.eps', 'epsc2');
 close;
 end

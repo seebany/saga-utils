@@ -19,5 +19,7 @@ switch rr
         color = [1, 0, 1]; %magenta
     case {'ASTRArx', 'IIT-13'}
         color = [1, 0, 0]; %red
+    case {'gridmea'}
+        color = [0.8500, 0.3250, 0.0980]; %orange	
 end
 end

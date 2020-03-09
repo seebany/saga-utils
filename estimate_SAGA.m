@@ -14,8 +14,7 @@ else
 end
 
 %hardcoded correlation cut off for SAGA
-rho_c = 0.65;
-rho_c = 0.4;
+rho_c = 0.6;
 
 % remove invalid observations
 [badrows, badcols] = find(CCVAL < rho_c | CCVAL > 1 | isnan(Y));
@@ -39,7 +38,8 @@ if ~isempty(Y) && nargin == 0
     legend([hyn(1,:);hy],{'$\tilde{Y}$','$Y$'},'location','best');
     title('Original observations and noisy ensembles');
     tightfig;
-    saveas(gcf,'../Observations.png');
+    saveas(gcf,'/data1/home/alopez35/mfigures/obervations.png');
+      %  saveas(gcf,'../Observations.png');
     close(figobs);
     fignu = figure;
     errarr = YN - repmat(Y,1,size(YN,2));
@@ -47,7 +47,8 @@ if ~isempty(Y) && nargin == 0
     set(gca,'yscale','log');
     title('$\nu = \tilde{Y} - Y, Y = Hx$');
     tightfig;
-%     saveas(gcf,'../Nu.pdf');
+    saveas(gcf,'/data1/home/alopez35/mfigures/Nu.png');
+    %saveas(gcf,'../Nu.pdf');
     close(fignu);
 end
 
@@ -126,14 +127,18 @@ psi(minus_ind) = pi + psi(minus_ind);
 minus_ind = find(theta < 0);
 theta(minus_ind) = 2 * pi + theta(minus_ind);
 
+%c = a .* ve .^2+b .* vn .^2+2 .* h .* ve .*vn;
+
 % characteristic velocity
 vc = sqrt((a .* b - h.^2)./(a .* g.^2 - 2 .* f .* g .* h + b .* f.^2) - 1 ) .* v;
 vc1 = sqrt((a.^3 + 2 .* a .* h .^2 + b .* h.^2) ./ (g .* h + a .* f).^2 - 1) .* v;
 vc2 = sqrt((b.^3 + 2 .* b .* h .^2 + a .* h.^2) ./ (f .* h + b .* g).^2 - 1) .* v;
+%vc1 = sqrt(c.*(a.^3 + 2 .* a .* h .^2 + b .* h.^2) ./ (g .* h + a .* f).^2 - 1) .* v; %adding c parameter with k=0
+%vc2 = sqrt(c.*(b.^3 + 2 .* b .* h .^2 + a .* h.^2) ./ (f .* h + b .* g).^2 - 1) .* v;
 
 if all(ar >= 10) 
-%     vc = min(vc1,vc2);
-%     v = min(v1,v2);   
+    vc = min(vc1,vc2);
+    v = min(v1,v2);   
 end
 
 % major and minor axes
