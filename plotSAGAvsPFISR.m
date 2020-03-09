@@ -1,4 +1,4 @@
-function varargout = plotSAGAvsPFISR(prnlist, tstt, vflag)
+function varargout = plotSAGAvsPFISR(prnlist, tstt, vflag,fluct)
 [prop, op_path0, MEGAVEST_path] = ver_chk;
 
 close all;
@@ -29,7 +29,9 @@ if nargin ~= 0
         otherwise
             vflag = 'debug';
             args = {[0.05, 0], [0.18, 0.05], [0.11, 0.05]};
-            ffflag = 1:2;
+            %ffflag = 1:2;
+                ffflag = 1;
+
     end
     prnlist = unique(prnlist, 'stable');
     
@@ -92,9 +94,27 @@ if nargin ~= 0
                             lcolor3 = 0.33 * lcolor;
                             marker = 's';
                     end
-                    matfilesname = dir([MEGAVEST_path, ...
-                        'xcorr_', year, '_', doy, '_PRN', num2str(prnlist(kk)), ...
-                        datestr(tstt, '_'), num2str(tau, '*_%is.mat')]);
+                    if tstt(1,4)<=9 && tstt(1,5)<=9
+                        matfilesname = dir([MEGAVEST_path, ...
+                            'xcorr_', year, '_', doy, '_PRN', num2str(prnlist(kk)), ...
+                            '_0', num2str(tstt(1,4)), '0', num2str(tstt(1,5)), ...
+                            'UT', '_case',  num2str(fluct), num2str(tau, '*_%is.mat')]);
+                    elseif tstt(1,4)<=9 && tstt(1,5)>=9
+                        matfilesname = dir([MEGAVEST_path, ...
+                            'xcorr_', year, '_', doy, '_PRN', num2str(prnlist(kk)), ...
+                            '_0', num2str(tstt(1,4)), num2str(tstt(1,5)), ...
+                            'UT','_case', num2str(fluct),num2str(tau, '*_%is.mat')]);
+                    elseif tstt(1,4)>=9 && tstt(1,5)<=9
+                        matfilesname = dir([MEGAVEST_path, ...
+                            'xcorr_', year, '_', doy, '_PRN', num2str(prnlist(kk)), ...
+                            '_', num2str(tstt(1,4)), '0', num2str(tstt(1,5)), ...
+                            'UT','_case', num2str(fluct), num2str(tau, '*_%is.mat')]);
+                    elseif tstt(1,4)>=9 && tstt(1,5)>=9
+                        matfilesname = dir([MEGAVEST_path, ...
+                            'xcorr_', year, '_', doy, '_PRN', num2str(prnlist(kk)), ...
+                            '_', num2str(tstt(1,4)), num2str(tstt(1,5)), ...
+                            'UT','_case', num2str(fluct) , num2str(tau, '*_%is.mat')]);
+                    end
                     weimermatfile = dir([weimer_path, 'weimer_', year, '_', doy, ...
                         datestr(tstt, '_HHMM'), '*.mat']);
                     try
@@ -132,7 +152,6 @@ if nargin ~= 0
                             ngood = find(filter);
                             length(ngood)
                             nbad = find(~filter & ~isnan(ESTV(:, 3)));
-                            
                             veststats = [];
                             for iiii = 1:length(col_est)
                                 veststats(iiii, :) = median(ESTV(~isnan(ESTV(:, col_est(iiii))), col_est(iiii)));
@@ -162,15 +181,19 @@ if nargin ~= 0
                                 plotconfig = {marker, 'LineWidth', 1, ...
                                     'Markersize', 4,};
                                 %                             hold(sp(subi),'on');
+                                if ~isempty(ngood) == 1
                                 h(subi, kk) = errorbar(sp(subi), tc{kk, fi}(ngood), vest(end-1, ngood), vest(end, ngood), ...
                                     plotconfig{:}, 'color', lcolor, 'markerfacecolor', lcolor);
                                 %                         sqrt(meansqr(vest(end, ngood) ./ vest(end-1, ngood))) * 100
                                 rms((vest(end, ngood) - median(vest(end, ngood)))./vest(end-1, ngood)) * 100
+                                end
                                 hold(sp(subi), 'on');
                                 if length(prnlist) == 1
+                                    if ~isempty(nbad) == 1;
                                     h1(subi, kk) = errorbar(sp(subi), tc{kk, fi}(nbad), vest(end-1, nbad), vest(end, nbad), ...
                                         'x', 'LineWidth', 1, 'Markersize', 6, ...
                                         'color', lcolor2, 'markerfacecolor', lcolor2);
+                                    end  
                                 end
                                 %                     errorbar(sp(subi), tc{kk, fi}(nnan), vest(end-1, nnan), vest(end, nnan), ...
                                 %                         plotconfig{:}, 'color', lcolor3, 'markerfacecolor', 0.33*lcolor);
@@ -253,7 +276,9 @@ if nargin ~= 0
                 t_pfisr = datevec([tmin, tmax])
                 mflag = 'lat';
                 mflag = 'dtau';
-%                 [megadata, lat, dtau, ebar] = plotPFISRvs(t_pfisr(1, :), t_pfisr(2, :), mflag, vflag);
+                flag==1; %flag=0 if PFISR data available, =1 if not
+                if flag==0 
+                [megadata, lat, dtau, ebar] = plotPFISRvs(t_pfisr(1, :), t_pfisr(2, :), mflag, vflag);
                 if ilat ~= 1
                     t_pfisr
                     [lat, ebar(:, :, 1)']
@@ -352,15 +377,22 @@ if nargin ~= 0
                 %             print([op_path0, plotfilename,'.pdf'], '-dpdf', '-fillpage');
                 %         catch
                 %             print([op_path0, plotfilename,'.pdf'], '-dpdf');
-                %         end
-                close;
-                clear tc datai;
+                %         end               
                 if strcmp(vflag, 'debug')
                     varargout = {rmsemat};
                     disp(rmsemat);
                 else
                     varargout = {};
                 end
+                end
+                legend(['PRN', num2str(prnlist), '$\surd$'],['PRN',num2str(prnlist),'$\times$'],'Location', 'Southoutside')
+                tmp = strjoin(cellstr(num2str(prnlist', '%02i'))', '_');
+                a = {'SAGA', vflag, 'case', num2str(fluct), 'PRN', tmp, year, doy, datestr(tstt, 'HHMMUT'), ...
+                    num2str(0.65), num2str(tau, '%gs'), '', fflagstr};
+                plotfilename = strjoin(a, '_');
+                saveas(gcf, [op_path0, plotfilename, '.png'], 'png');               
+                close;
+                clear tc datai;
             end
         end
     end

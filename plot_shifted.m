@@ -1,5 +1,5 @@
 function [ph_truncated, pwr_truncated] = ...
-    plot_shifted(xdata, tpeak, rcvr_op, sitenum_op, combos, Fs)
+    plot_shifted(xdata, tpeak, rcvr_op, sitenum_op, combos, Fs, fluct)
 % load('lz.mat');
 combos_auto = [1:size(rcvr_op, 1); 1:size(rcvr_op, 1)]';
 [~, index] = sortrows([combos; fliplr(combos); combos_auto]);
@@ -32,23 +32,33 @@ rr_lag = rr_lag(lagsumsqr == min(lagsumsqr));
 fig_all = figure;
 [ph_shifted, pwr_shifted, ph_truncated, pwr_truncated] = deal(cell(1, size(rcvr_op, 1)));
 for rr = 1:size(rcvr_op, 1)
+    if (tpeaks_array(rr_lead, rr) * Fs + 1)<1
+        return
+    end
     ph_shifted{rr} = xdata{rr}(tpeaks_array(rr_lead, rr) * Fs + 1:end, 3);
     pwr_shifted{rr} = xdata{rr}(tpeaks_array(rr_lead, rr) * Fs + 1:end, 2);
 end
 
 [sp, ~] = tight_subplot(2, 1, [0, 0.03], [0.11, 0.05], [0.11, 0.05]);
 for rr = 1:size(rcvr_op, 1)
+if length(ph_shifted{rr_lag})>length(ph_shifted{rr})
+    ph_truncated{rr} = [];
+    pwr_truncated{rr} = [];
+else
     ph_truncated{rr} = ph_shifted{rr}(1:length(ph_shifted{rr_lag}));
     pwr_truncated{rr} = pwr_shifted{rr}(1:length(pwr_shifted{rr_lag}));
     plot(sp(2), ph_truncated{rr}, 'color', rx_color(rcvr_op(rr, :)));
-    plot(sp(1), pwr_truncated{rr}, 'color', rx_color(rcvr_op(rr, :)));
+    %plot(sp(1), pwr_truncated{rr}, 'color', rx_color(rcvr_op(rr, :))); %NO DB
+    plot(sp(1), 10*log10(pwr_truncated{rr}), 'color', rx_color(rcvr_op(rr, :))); %DB
     hold(sp(1), 'on');
     hold(sp(end), 'on');
+end
 end
 set(sp(1:(end -1)), 'xticklabel', []);
 legend(sp(1), sitenum_op, 'orientation', 'horizontal');
 tightfig;
-saveas(fig_all, '../../../all', 'png');
+%saveas(fig_all, '../../../all', 'png');
+saveas(fig_all, '/data1/home/alopez35/mfigures/all', 'png');
 close;
 
 fig_each = figure;
@@ -61,11 +71,17 @@ end
 [sp, ~] = tight_subplot(size(rcvr_op, 1), 1, [0, 0.03], [0.11, 0.05], [0.11, 0.05]);
 for rr = 1:size(rcvr_op, 1)
     %     plot(sp(rr), ph_shifted{rr});
+    if fluct==0
     plot(sp(rr), ph_truncated{rr}, 'color', rx_color(rcvr_op(rr, :)));
+    elseif fluct==1
+    plot(sp(rr),10*log10(pwr_truncated{rr}), 'color', rx_color(rcvr_op(rr, :)));
+    end
     legend(sp(rr), sitenum_op{rr});
 end
 set(sp(1:end-1), 'xticklabel', []);
 set(sp(2:2:end), 'yticklabel', []);
 tightfig;
-saveas(fig_each, '../../../each', 'png');
+%saveas(fig_each, '../../../each', 'png');
+saveas(fig_each, '/data1/home/alopez35/mfigures/each', 'png');
+
 close;

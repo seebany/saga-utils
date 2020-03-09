@@ -17,13 +17,16 @@ elseif strcmp(phstr,'JROpow') == 1
 elseif strcmp(phstr,'JROph') == 1
     colnum = 3;
     dt = 0.02;
+elseif strcmp(phstr, 'power') == 1
+    colnum = 2;
+    dt = 0.01;
 end
 
 % if nargin == 0
 %     combos = combos([1 5:7],:);
 %     combos(1,:) = fliplr(combos(1,:));
 % end
-
+%xdata2 = xdata;
 for i = 1:size(combos,1)
     if colnum == 2
         xdata{combos(i,1)}(:,colnum) = detrend(xdata{combos(i,1)}(:,colnum));
@@ -39,7 +42,12 @@ for i = 1:size(combos,1)
     cc2(:,i) = cc2(:,i)/sqrt(max(ac(:,i))*max(ac2(:,i)));
     ac(:,i) = ac(:,i)/sqrt(max(ac(:,i))*max(ac2(:,i)));
     ac2(:,i) = ac2(:,i)/sqrt(max(ac(:,i))*max(ac2(:,i)));
-    
+        plot(cc(:,i))
+        hold on
+        plot(cc2(:,i))
+        plot(ac(:,i))
+        plot(ac2(:,i))
+        close
     peak(i) = max(cc(:,i));
     altpeak(i) = cc(lag==0,i);
     altpeak2(i) = cc2(lag==0,i);
@@ -51,7 +59,7 @@ for i = 1:size(combos,1)
     t0_ind = find(abs(ac(:,i)-max(cc(:,i)))==min(abs(ac(:,i)-max(cc(:,i)))));
 %     err_t0(i) = unique(abs(ac(t0_ind)-max(cc(:,i))));
     t0_indm(:,i) = t0_ind(1);
-    t0(i) = unique(abs(lag(t0_ind)*dt));  
+    t0(i) = unique(abs(lag(t0_ind)*dt));
 end
 
 [~,order_t] = sort(tau0,'ascend');

@@ -1,4 +1,4 @@
-function [tstt, tend] = hrplot_iq_carrier(signal_type, home_dir, cases_folder, year, doy, ...
+function [tstt, tend] = hrplot_iq_carrier2(signal_type, home_dir, cases_folder, year, doy, ...
     prn, tspan_d, rcvr_op, zcounter, set_plot, fluct)
 
 close all
@@ -91,35 +91,27 @@ if 1
             elseif strcmp(year, '2017') && strcmp(doy, '233')
                 ttt = data_PRN([1, end], 1);
                 ttt = [20 * 60; 40 * 60];
-                %                 elseif prn == 27 && strcmp(year, '2015') && strcmp(doy, '076')
+                                 %elseif prn == 27 && strcmp(year, '2015') && strcmp(doy, '076')
                 %         ttt = data_PRN([1 end],1);
-                %         ttt = [660;721];
+                         %ttt = [693;753];
                 %     elseif prn == 22 && strcmp(year,'2015') && strcmp(doy,'076')
                 %         ttt = [600;900];
-%             elseif (prn == 23 || prn == 10 || prn == 13) && strcmp(year,'2013') && strcmp(doy,'342')
-%                 ttt = [2615;2660];
-%               elseif (prn == 23 || prn == 10 || prn == 13) && strcmp(year,'2013') && strcmp(doy,'342')
-%                 ttt = [2625;2660]; %CASE y1 SHORTER  (after 3UT)
-%             elseif (prn == 32) && strcmp(year,'2014') && strcmp(doy,'320')
+%                      elseif prn == 19 && strcmp(year,'2015') && strcmp(doy,'076')
+%                          ttt = [183;214];
+%              elseif (prn == 23 || prn == 10 || prn == 13) && strcmp(year,'2013') && strcmp(doy,'342')
+%                  ttt = [2615;2660]; %CASE y1  (after 3UT)
+%              elseif (prn == 23 || prn == 10 || prn == 13) && strcmp(year,'2013') && strcmp(doy,'342')
+%                  ttt = [2625;2660]; %CASE y1 SHORTER  (after 3UT)
+%              elseif (prn == 32) && strcmp(year,'2014') && strcmp(doy,'320')
 %                 ttt = [1078;1108];  %Pralay case 3b (after 1UT)
 %              elseif (prn == 32) && strcmp(year,'2014') && strcmp(doy,'320')
 %                  ttt = [1030;1071];  %Pralay case 3A (after 1UT)
-%               elseif (prn == 32) && strcmp(year,'2014') && strcmp(doy,'320')
- %                 ttt = [975;1011];  % TEST ERROR L,Z(after 1UT)  
-%              elseif (prn == 1) && strcmp(year,'2014') && strcmp(doy,'320')
-%                   ttt = [1020;1050];  % After 1UT
-%                 elseif (prn == 30) && strcmp(year,'2014') && strcmp(doy,'320')
-%                    ttt = [776;818];  % After 9UT   
-           % elseif prn == 29 && strcmp(year,'2014') && strcmp(doy,'051')
-                %        ttt = [2685;2729];
-                elseif prn == 23 && strcmp(year,'2015') && strcmp(doy,'280')
-                        ttt = [1150;1180]; %after 6ut
-                elseif prn == 25 && strcmp(year,'2015') && strcmp(doy,'280')
-                        ttt = [445;475]; %after 18Ut
-                elseif prn == 1 && strcmp(year,'2014') && strcmp(doy,'320')
-                        ttt = [1020;1050];
-                elseif prn == 30 && strcmp(year,'2014') && strcmp(doy,'320')
-                        ttt = [798;828];
+%                elseif (prn == 32) && strcmp(year,'2014') && strcmp(doy,'320')
+%                    ttt = [975;1011];  % TEST ERROR L,Z(after 1UT)
+%              elseif prn == 29 && strcmp(year,'2014') && strcmp(doy,'051')
+%                          ttt = [2685;2729];
+%                          ttt = [656;697];
+%                          ttt = [535;570];
             else
                 ttt = data_PRN([1, end], 1);
             end
@@ -300,11 +292,11 @@ if 1
         end
     end
     gcabottom = get(phasesp, 'outerposition');
-    lg = legend(h, RCVRNAME, 'Location', ...
-        'north', 'Orientation', 'horizontal');
-    lgpos = get(lg, 'position');
-    lg = legend(h, RCVRNAME, 'Position', ...
-        [lgpos(1) + 0.001, gcabottom(2) + gcabottom(4), lgpos(3:4)], 'Orientation', 'horizontal');
+   lg = legend(h, RCVRNAME, 'Location', ...
+       'north', 'Orientation', 'horizontal');
+   lgpos = get(lg, 'position');
+   lg = legend(h, RCVRNAME, 'Position', ...
+       [lgpos(1) + 0.001, gcabottom(2) + gcabottom(4), lgpos(3:4)], 'Orientation', 'horizontal');
     
     %save the plot
     if strcmp(set_plot, 'A') == 1
@@ -428,6 +420,8 @@ for i_dtau = 1:length(v_dtau)
     [tslist, telist] = dividet_v1(t, dtau, 10);
      if ((prn == 32) && strcmp(year,'2014') && strcmp(doy,'320'))==1 %Case 3b Pralay
          [tslist, telist] = dividet_v2(t, dtau, 10);
+     elseif  isempty(tslist)
+         [tslist, telist] = dividet_v2(t, dtau, 10);
      end
     %[tslist, telist] = dividet_v3(t, dtau*3/4, 10);
     [tslist, telist, telist - tslist]
@@ -449,32 +443,7 @@ for i_dtau = 1:length(v_dtau)
         end
         fprintf('Begin estimation for period %i/%i \n', tt, length(telist));
         
-        [peak, tpeak, altpeak] = ...
-            dataxcorr_alt(sitenum_op, xdata, combos_fig, flagfluc);
-        %save the plot
-        title(['Cross-correlation over ', ...
-            num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's after ', ...
-            datestr(init_time, 'HHMM'), 'UT']);
-        plotname = ['PRN', num2str(prn), '_Lag_plot_', ...
-            num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
-            datestr(init_time, 'HHMM'), 'UT'];
-        plotpath = [op_path, plotname, '.png']
-        saveas(gcf, plotpath, 'png');
-        close;
-        Fs=round(100);
-               % get time-shifted signals %EACH %ALL
-         [ph_truncated, pwr_truncated] = ...
-                    plot_shifted(xdata, tpeak, rcvr_op, sitenum_op, combos, Fs, fluct);
-%         
-        scale=dev(rcvr_op,ph_truncated,pwr_truncated,sitenum_op,fluct);
-        scale=0.25
-        [tauaarrn, taucarrn, ccvalarrn, ccerrarrn, ...
-            tauaarr, taucarr, ccvalarr, ccerrarr] = ...
-            estimate_obs(rcvr_op, xdata, combos, flagfluc,scale);
-%         [tauaarrn, taucarrn, ccvalarrn, ccerrarrn, ...
-%             tauaarr, taucarr, ccvalarr, ccerrarr] = ...
-%             estimate_obs2(rcvr_op, xdata, combos, flagfluc,scale); 
-        
+       
         %read origin receiver location
         [~, op_path_0] = inoutpath(cases_folder, home_dir, year, doy, rcvr_op(1, :));
         load([op_path_0, 'prn_files_', signal, sep, 'navdata.mat']);
@@ -568,6 +537,95 @@ for i_dtau = 1:length(v_dtau)
 %                 close;
         %             return;
         
+         [peak, tpeak, altpeak] = ...
+            dataxcorr_alt(sitenum_op, xdata, combos_fig, flagfluc);
+        %save the plot
+        title(['Cross-correlation over ', ...
+            num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's after ', ...
+            datestr(init_time, 'HHMM'), 'UT']);
+        plotname = ['PRN', num2str(prn), '_Lag_plot_', ...
+            num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
+            datestr(init_time, 'HHMM'), 'UT'];
+        plotpath = [op_path, plotname, '.png']
+        saveas(gcf, plotpath, 'png');
+        close;
+        Fs=round(100);
+               % get time-shifted signals %EACH %ALL
+         [ph_truncated, pwr_truncated] = ...
+                    plot_shifted(xdata, tpeak, rcvr_op, sitenum_op, combos, Fs, fluct);
+%         
+         scale=dev(rcvr_op,ph_truncated,pwr_truncated,sitenum_op,fluct);
+ %       scale=0.25;
+        numsim=10; 
+        [tauaarrn, taucarrn, ccvalarrn, ccerrarrn, ...
+             tauaarr, taucarr, ccvalarr, ccerrarr, A_nu, phi_nu] = ...
+             estimate_obs2(rcvr_op, xdata, combos, flagfluc,scale,numsim); 
+        
+        % Plot input and output of NOISE 
+        plot_noisesignal=0;
+        if plot_noisesignal==1
+        for rr = 1:size(rcvr_op, 1)
+            rcvr_name = rcvr_op(rr, :);
+            obstime_e = xdata{rr}(:,1);
+            power_e = xdata{rr}(:, 2);
+            phase_e = xdata{rr}(:, 3);
+            [color] = rx_color(rcvr_name);
+            if diff(tlim) <= 300
+                ticklbl = 'HH:MM:SS';
+                rotang = 0;
+            else
+                ticklbl = 'HH:MM';
+                rotang = 25;
+            end
+            subplot(2, 1, 1);
+            for n=1:numsim
+                scint_n = power_e.*exp(1i.*phase_e) + A_nu(:,rr,n).* exp(1i.* phi_nu(:,rr,n));
+                plot(obstime_e/ 24 / 3600 + init_time, 10*log10(abs(scint_n)),'*g','MarkerSize',0.5);                
+                hold on;
+            end
+            plot(obstime_e/ 24 / 3600 + init_time, 10*log10(power_e), 'Color', color, 'Linewidth', 0.25);
+            set(gca, 'xticklabelrotation', rotang);
+            str = strcat('Detrended Power $P_{f}$ and', ...
+                {' Phase $\Phi_f$ for '}, signal, ', PRN:', num2str(prn));
+            title(str);
+            axis([obstime_e(1)/ 24 / 3600 + init_time, obstime_e(end)/ 24 / 3600 + init_time, -10, 5]);
+            datetick('x', ticklbl, 'keeplimits');
+            ylabel('(a) Power $P_f$ [dB]');
+            hold on;
+            phasesp = subplot(2, 1, 2);
+             for n=1:numsim
+                scint_n = power_e.*exp(1i.*phase_e) + A_nu(:,rr,n).* exp(1i.* phi_nu(:,rr,n));
+                scint_n2 = angle(scint_n);
+                ind = find(((phase_e>pi)&(scint_n2<0))|(phase_e-scint_n2>2));
+                scint_n2(ind) = scint_n2(ind) + 2*pi;
+                ind2 = find(((phase_e<(-pi))&(scint_n2>0))|(phase_e-scint_n2<-2));
+                scint_n2(ind2) = scint_n2(ind2) - 2*pi;
+                h2(rr)=plot(gca, obstime_e/ 24 / 3600 + init_time,(scint_n2),'*g', 'MarkerSize',0.5);
+                hold on;
+             end
+            h(rr) = plot(gca, obstime_e/ 24 / 3600 + init_time, phase_e, 'Color', color, 'Linewidth', 0.25);
+            set(gca, 'xticklabelrotation', rotang);
+            ylabel('Phase $\Phi_f$ [rad]');
+            hold on;
+            axis([obstime_e(1)/ 24 / 3600 + init_time, obstime_e(end)/ 24 / 3600 + init_time, -2 * pi, 2 * pi]);
+            datetick('x', ticklbl, 'keeplimits');
+            xstring = ['Time [', ticklbl, ' UT] on: ', datestr(tstt, 'mm/dd/yy')];
+            xlabel(xstring);
+            gcabottom = get(phasesp, 'outerposition');
+            lg = legend([h(rr) h2(rr)], [RCVRNAME(rr) 'With noise'], 'Location', ...
+                'north', 'Orientation', 'horizontal');
+            lgpos = get(lg, 'position');
+            lg = legend([h(rr) h2(rr)], [RCVRNAME(rr) 'With noise'], 'Position', ...
+                [lgpos(1) + 0.001, gcabottom(2) + gcabottom(4), lgpos(3:4)], 'Orientation', 'horizontal');
+            plot_name = [signal, '_PRN', num2str(prn), 'RCVR', num2str(rr), ...
+                num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
+                datestr(init_time, 'HHMM'), 'UT_withNOISE'];
+            [~, hr_path, ~] = ver_chk;
+            plotpath = [hr_path, plot_name, '.png'];
+            saveas(gcf, plotpath, 'png');
+            close;
+        end
+        end      
         % Solve for drift velocity
         %     combos = nchoosek(1:size(rcvr_op,1), 2);
         [H, YN, Y, CCVALN, CCVAL, CCERR, COMBOS, RXILOC, RHO0] = deal([]);
@@ -648,6 +706,8 @@ for i_dtau = 1:length(v_dtau)
         ar %axial ratio
         psia %Psi_axialratiopsi
         vc/vmag 
+        vmag_mean = vmag;
+        vang_mean = vang;
         
         % covariances of ^scV^prn
         covmagang = J * M * covdrift * (J * M)';
@@ -796,159 +856,268 @@ for i_dtau = 1:length(v_dtau)
         mkdir = strjoin({'mkdir -p', op_path});
         system(mkdir);
         
-        if ~isnan(vmag) && ~isnan(vang)
-            for rr = 1:size(rcvr_op, 1)
-                if strcmp(rcvr_op(rr, :), 'ASTRArx') && strcmp(doy, '342444444') && strcmp(year, '2013')
-                    AZ(tt, rr) = mean(AZ(tt, [1:rr - 1, rr + 1:end]));
-                    ZE(tt, rr) = mean(ZE(tt, [1:rr - 1, rr + 1:end]));
+        if ~isnan(vmag) && ~isnan(vang) && (vc/vmag<1) && (vc/vmag>0)
+            for n = 1:numsim %defined for estimate_obs
+                for rr = 1:size(rcvr_op, 1)
+                    if strcmp(rcvr_op(rr, :), 'ASTRArx') && strcmp(doy, '342') && strcmp(year, '2013')
+                        AZ(tt, rr) = mean(AZ(tt, [1:rr - 1, rr + 1:end]));
+                        ZE(tt, rr) = mean(ZE(tt, [1:rr - 1, rr + 1:end]));
+                    end        
+
+                    %Amplitude and phase of the receivered signal
+
+                    %original signals
+                    pwr_o = xdata{rr}(:, 2); %+ 0.25*randn(l,1);
+                    ph_o = xdata{rr}(:, 3); %+ 0.25*randn(l,1);
+                    %time-shifted, aligned and truncated signals
+                    if shifted  
+                        pwr = pwr_truncated{rr}; %+ 0.25*randn(l,1);
+                        ph = ph_truncated{rr}; %+ 0.25*randn(l,1);
+                    else             
+                        pwr =pwr_o; %+ 0.25*randn(l,1);
+                        ph = ph_o; %+ 0.25*randn(l,1);
+                    end
+                    
+                    scint = pwr.*exp(1i.*ph);
+                    noise = A_nu(:,rr,n).* exp(1i.* phi_nu(:,rr,n));
+                    scint_n = scint + noise;
+                    pwr_n = abs(scint_n);
+                    ph_n = angle(scint_n);
+                    
+                    clear ind ind2
+                    ind = find(((ph>pi)&(ph_n<0))|(ph-ph_n>2));
+                    ph_n(ind) = ph_n(ind) + 2*pi;
+                    ind2 = (((ph<(-pi))&(ph_n>0))|(ph-ph_n<-2));
+                    ph_n(ind2) = ph_n(ind2) - 2*pi;
+                    
+                    l = length(pwr);
+                    if zeropadding
+                        NFFT = 2^nextpow2(l);
+                    else
+                        NFFT = l;
+                    end
+
+                    if windowed
+                        window_welch = [];
+                        window_period = [];
+                    else
+                        window_welch = ones(NFFT, 1);
+                        window_period = ones(NFFT, 1);
+                    end
+
+                    if overlap
+                        noverlap = [];
+                    else
+                        noverlap = 0;
+                    end
+                    
+                    if n==1
+                        pwr = pwr;
+                        ph =ph; %no noise added
+                        [Spwr_obs_welch_nn{tt, rr}, ~] = pwelch(factor * log(pwr), window_welch, noverlap, NFFT, Fs, 'psd');
+                        [Sph_obs_welch_nn{tt, rr}, f] = pwelch(ph, window_welch, noverlap, NFFT, Fs, 'psd');
+                        [Spwr_obs_period_nn{tt, rr}, ~] = periodogram(factor * log(pwr), window_period, NFFT, Fs, 'psd');
+                        [Sph_obs_period_nn{tt, rr}, f] = periodogram(ph, window_period, NFFT, Fs, 'psd');
+                        R_obs_welch_nn{tt}(:, rr) = Spwr_obs_welch_nn{tt, rr} ./ Sph_obs_welch_nn{tt, rr};
+                        R_obs_period_nn{tt}(:, rr) = Spwr_obs_period_nn{tt, rr} ./ Sph_obs_period_nn{tt, rr};
+                    end
+                    
+                    pwr = pwr_n;
+                    ph = ph_n;   
+                    [Spwr_obs_welch{tt, rr}, ~] = pwelch(factor * log(pwr), window_welch, noverlap, NFFT, Fs, 'psd');
+                    [Sph_obs_welch{tt, rr}, f] = pwelch(ph, window_welch, noverlap, NFFT, Fs, 'psd');
+
+                    %                 keyboard;
+
+                    [Spwr_obs_period{tt, rr}, ~] = periodogram(factor * log(pwr), window_period, NFFT, Fs, 'psd');
+                    [Sph_obs_period{tt, rr}, f] = periodogram(ph, window_period, NFFT, Fs, 'psd');
+                    
+                    R_obs_welch{tt}(:, rr) = Spwr_obs_welch{tt, rr} ./ Sph_obs_welch{tt, rr};
+                    R_obs_period{tt}(:, rr) = Spwr_obs_period{tt, rr} ./ Sph_obs_period{tt, rr};
                 end
-                
-                %Amplitude and phase of the receivered signal
-                
-                %original signals
-                pwr_o = xdata{rr}(:, 2); %+ 0.25*randn(l,1);
-                ph_o = xdata{rr}(:, 3); %+ 0.25*randn(l,1);
-                %time-shifted, aligned and truncated signals
-                if shifted
-                    pwr = pwr_truncated{rr}; %+ 0.25*randn(l,1);
-                    ph = ph_truncated{rr}; %+ 0.25*randn(l,1);
+                %Welch or Periodogram?
+                if welch
+                    R_obs = R_obs_welch{tt};
+                    R_obs_n{n} = R_obs_welch{tt};
+                    if n == 1
+                        R_obs_nn = R_obs_welch_nn{tt}; %no noise added
+                    end
                 else
-                    pwr =pwr_o; %+ 0.25*randn(l,1);
-                    ph = ph_o; %+ 0.25*randn(l,1);
-                end
-                
-                l = length(pwr);
-                if zeropadding
-                    NFFT = 2^nextpow2(l);
-                else
-                    NFFT = l;
-                end
-                
-                if windowed
-                    window_welch = [];
-                    window_period = [];
-                else
-                    window_welch = ones(NFFT, 1);
-                    window_period = ones(NFFT, 1);
-                end
-                
-                if overlap
-                    noverlap = [];
-                else
-                    noverlap = 0;
-                end
-                [Spwr_obs_welch{tt, rr}, ~] = pwelch(factor * log(pwr), window_welch, noverlap, NFFT, Fs, 'psd');
-                [Sph_obs_welch{tt, rr}, f] = pwelch(ph, window_welch, noverlap, NFFT, Fs, 'psd');
-                
-                %                 keyboard;
-                
-                [Spwr_obs_period{tt, rr}, ~] = periodogram(factor * log(pwr), window_period, NFFT, Fs, 'psd');
-                [Sph_obs_period{tt, rr}, f] = periodogram(ph, window_period, NFFT, Fs, 'psd');
-                
-                R_obs_welch{tt}(:, rr) = Spwr_obs_welch{tt, rr} ./ Sph_obs_welch{tt, rr};
-                R_obs_period{tt}(:, rr) = Spwr_obs_period{tt, rr} ./ Sph_obs_period{tt, rr};
-            end
-            
-            %Welch or Periodogram?
-            if welch
-                R_obs = R_obs_welch{tt};
-            else
-                R_obs = R_obs_period{tt};
-            end
-            
-            [Lgrid, zgrid] = meshgrid(Lmin:step:zmax, zmin:step:zmax);
-            for rr = 1:size(rcvr_op, 1)
-                ep = NaN(size(Lgrid));
-                for i = 1:size(Lgrid, 1)
-                    for j = 1:size(Lgrid, 2)
-                        L = Lgrid(i, j);
-                        z = zgrid(i, j);
-                        if z - L >= 100e3
-                            if fitall == 0
-                                [R_rytov, k_par, k_par_index, R_Bust] = Lz(vmag, vang, AZ(tt, rr), ZE(tt, rr), L, z, f);
-                                R_obs_c = R_obs(k_par_index, rr);
-                            else
-                                [R_rytov, k_par, k_par_index, R_Bust] = Lz(vmag, vang, AZ(tt, :), ZE(tt, :), L, z, f);
-                                R_obs_c = R_obs(k_par_index, :);
-                            end
-                            
-                            R_rytov_c = R_rytov(k_par_index, :);
-                            R_Bust_c = R_Bust(k_par_index, :);
-                            
-                            % normalized?
-                            if normalize == 0
-                                sumsquared = (R_obs_c - R_rytov_c).^2;
-                            else
-                                sumsquared = ((R_obs_c - R_rytov_c) ./ R_obs_c).^2;
-                            end
-                            
-                            epsqr = mean(sumsquared(:), 'omitnan');
-                            ep(i, j) = epsqr;
-                            %                             if epsqr > 10
-                            %                                 ep(i,j) = NaN;
-                            %                                 continue;
-                            %                             end
-                        end
+                    R_obs = R_obs_period{tt};
+                    R_obs_n{n} = R_obs_period{tt};
+                    if n == 1
+                        R_obs_nn = R_obs_period_nn{tt};
                     end
                 end
-                figj = figure;
-                
-                ep_min(:, rr) = min(min(ep));
-                ep_max(:, rr) = max(max(ep));
-                if isnan(ep_min(:,rr))
-                    disp(['MSError Nan'])
-                    continue
+
+                [Lgrid, zgrid] = meshgrid(Lmin:step:zmax, zmin:step:zmax);
+
+                for rr = 1:size(rcvr_op, 1)
+                    vmag = evmag*randn(1) + vmag_mean;
+                    vang = evang*randn(1) + vang_mean;
+                    ep = NaN(size(Lgrid));
+                    for i = 1:size(Lgrid, 1)
+                        for ii = 1:size(Lgrid, 2)
+                            L = Lgrid(i, ii);
+                            z = zgrid(i, ii);
+                            if z - L >= 100e3
+                                %add a distribution to velocity with its
+                                %mean and std value
+                               
+                                if fitall == 0
+                                    [R_rytov, k_par, k_par_index, R_Bust] = Lz(vmag, vang, AZ(tt, rr), ZE(tt, rr), L, z, f);
+                                    R_obs_c = R_obs(k_par_index, rr);
+                                    if n ==1
+                                        R_obs_c_nn = R_obs_nn(k_par_index, rr);
+                                    end
+                                else
+                                    [R_rytov, k_par, k_par_index, R_Bust] = Lz(vmag, vang, AZ(tt, :), ZE(tt, :), L, z, f);
+                                    R_obs_c = R_obs(k_par_index, rr);
+                                    if n ==1
+                                        R_obs_c_nn = R_obs_nn(k_par_index, rr);
+                                    end
+                                end
+                                
+                                k_par_index_005 = find(k_par(k_par_index) < 0.05);
+                                if isempty(k_par_index_005)==1
+                                      k_par_index2 = k_par_index;
+                                      R_obs_c2 = R_obs_c;
+                                else
+                                    R_obs_c_max = max(R_obs_c(k_par_index_005));
+                                    k_par_index_R_obs_max = find(R_obs_c== R_obs_c_max);
+                                    k_par_R_obs_max = k_par(k_par_index_R_obs_max);
+                                    k_fit_limit = 2* k_par_R_obs_max;
+                                    k_index_fit_limit = find(k_par == k_fit_limit);
+                                    for ki=1:size(k_par_index)
+                                        if k_par_index(ki) <= k_index_fit_limit
+                                            k_par_index2(ki) = k_par_index(ki); %index to fit R_rytov to R_observed in k<k(R_obs_max*2)
+                                        end
+                                    end
+                                    if exist('k_par_index2','var')==0
+                                        k_par_index2=k_par_index;
+                                    end
+                                    R_obs_c2 = R_obs_c(k_par_index2, :);
+                                end
+                               
+                                R_rytov_c = R_rytov(k_par_index2, :);
+                                R_Bust_c = R_Bust(k_par_index2, :);
+                                
+                                clear k_par_index2
+                                % normalized?
+                                if normalize == 0
+                                    sumsquared = (R_obs_c2 - R_rytov_c).^2;
+                                    sumsquared = (log10(R_obs_c2) - log10(R_rytov_c)).^2;
+                                else 
+                                    sumsquared = ((log10(R_obs_c2) - log10(R_rytov_c)) ./ log10(R_obs_c2)).^2;
+                                end  
+
+                                epsqr = mean(sumsquared(:), 'omitnan');
+                                ep(i, ii) = epsqr;
+                                                                %                             if epsqr > 10
+                                %                                 ep(i,j) = NaN;
+                                %                                 continue;
+                                %                             end
+                            end
+                        end
+                    end
+                    
+                    ep_min_n(n, rr) = min(min(ep));
+                    ep_max_n(n, rr) = max(max(ep));
+                    
+                    if isnan(ep_min_n(n,rr))
+                        disp(['MSError Nan'])
+                        continue
+                    end
+
+                    L_hat_n(n, rr) = Lgrid(ep == ep_min_n(n, rr));
+                    z_hat_n(n, rr) = zgrid(ep == ep_min_n(n, rr));
+                    %                 mesh(Lgrid/10^3, zgrid/10^3, ep, ep)
+                    flagplotmin = 0;
+                    if flagplotmin == 1 && n == numsim
+                    figj = figure;
+                    pcolor(Lgrid/10^3, zgrid/10^3, ep);
+                    %                 shading(gca, 'flat');
+                    %                 set(gca, 'layer', 'top');
+                    caxis([0, 2]);
+                    hold on;
+                    %                 plot3(L_hat/10^3,z_hat/10^3,ep_min,'ro');
+                    plot(L_hat_n(n, rr)/10^3, z_hat_n(n, rr)/10^3, 'ro');
+                    xlabel('Thickness $L$ [km] ');
+                    ylabel('Top height $z$ [km]');
+                    zlabel('$\epsilon^2$');
+                    title(['$\hat{L} = $', num2str(L_hat_n(n, rr)/10^3), ', ', ...
+                        '$\hat{z} = $', num2str(z_hat_n(n, rr)/10^3), ', ', ...
+                        '$\epsilon^2_{min} = $', num2str(ep_min_n(n, rr)), ', ', ...
+                        '$v =$', num2str(vmag), ...
+                        'for ', sitenum_op{rr, :}]);
+                    %                 set(gca, 'Zscale', 'log');
+                    %         zlim([0 10]);
+                    %                 view([45,15]);
+                    tightfig;
+                    cb = colorbar;
+                    set(get(cb, 'YLabel'), 'String', '$\epsilon^2$', 'interpreter', 'latex');
+                    plotname = [year, '_', doy, '_PRN', num2str(prn), '_', sitenum_op{rr, :}, '_CostFunction_', ...
+                        num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
+                        datestr(init_time, 'HHMM'), 'UT_', num2str(factor), '_', num2str(zmax/1000)];
+                    plotpath = [op_path, plotname, suffix];
+                    saveas(gcf, plotpath, format);
+                    close;
+                    end
                 end
-                L_hat(:, rr) = Lgrid(ep == ep_min(:, rr));
-                z_hat(:, rr) = zgrid(ep == ep_min(:, rr));
-                %                 mesh(Lgrid/10^3, zgrid/10^3, ep, ep);
-                pcolor(Lgrid/10^3, zgrid/10^3, ep);
-                %                 shading(gca, 'flat');
-                %                 set(gca, 'layer', 'top');
-                caxis([0, 5]);
-                hold on;
-                %                 plot3(L_hat/10^3,z_hat/10^3,ep_min,'ro');
-                plot(L_hat(:, rr)/10^3, z_hat(:, rr)/10^3, 'ro');
-                xlabel('Thickness $L$ [km] ');
-                ylabel('Top height $z$ [km]');
-                zlabel('$\epsilon^2$');
-                title(['$\hat{L} = $', num2str(L_hat(:, rr)/10^3), ', ', ...
-                    '$\hat{z} = $', num2str(z_hat(:, rr)/10^3), ', ', ...
-                    '$\epsilon^2_{min} = $', num2str(ep_min(:, rr)), ', ', ...
-                     '$v =$', num2str(vmag), ...
-                    'for ', sitenum_op{rr, :}]);
-                %                 set(gca, 'Zscale', 'log');
-                %         zlim([0 10]);
-                %                 view([45,15]);
-                tightfig;
-                cb = colorbar;
-                set(get(cb, 'YLabel'), 'String', '$\epsilon^2$', 'interpreter', 'latex');
-                plotname = [year, '_', doy, '_PRN', num2str(prn), '_', sitenum_op{rr, :}, '_CostFunction_', ...
-                    num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
-                    datestr(init_time, 'HHMM'), 'UT_', num2str(factor), '_', num2str(zmax/1000)];
-                plotpath = [op_path, plotname, suffix];
-                saveas(gcf, plotpath, format);
-                close;
+            end
+            for rr = 1:size(rcvr_op, 1)
+                if isnan(ep_min_n(n,rr))
+                continue
+                end
+                    L_hat_mean(:, rr) = mean(L_hat_n(:, rr));
+                    L_hat_std(:, rr) = std(L_hat_n(:, rr));
+                    z_hat_mean(:, rr) = mean(z_hat_n(:, rr));
+                    z_hat_std(:,rr) =  std(z_hat_n(:, rr)); 
+                    ep_min(:, rr) = mean(ep_min_n(:, rr));
             end
             xl = [-inf, inf]; %xl = [1e-3 1e-1];
             %             return;
             for rr = 1:size(rcvr_op, 1)
+                if isnan(ep_min_n(n,rr))
+                continue
+                end
+                L_hat(:, rr) = L_hat_mean(:, rr);
+                z_hat(:, rr) = z_hat_mean(:, rr);
+                if flagplotmin == 1
                 figall = figure;
                 if welch
-                    loglog(k_par, Spwr_obs_welch{tt, rr}, 'b', ...
-                        k_par, Sph_obs_welch{tt, rr}, 'k', ...
-                        k_par, R_obs_welch{tt}(:, rr), 'r');
+                    loglog(k_par, Spwr_obs_welch{tt, rr}, '*c', ...
+                        k_par, Sph_obs_welch{tt, rr}, '*g', ...
+                        k_par, R_obs_welch{tt}(:, rr), '*m');
+                    hold on
+                    loglog(k_par, Spwr_obs_welch_nn{tt, rr}, 'b', ...
+                        k_par, Sph_obs_welch_nn{tt, rr}, 'k', ...
+                        k_par, R_obs_welch_nn{tt}(:, rr), 'r');
+%                     loglog(k_par, R_obs_welch{tt}(:, rr), '*g')                    
+%                     hold on
+%                     loglog(k_par, Spwr_obs_welch_nn{tt, rr}, 'b', ...
+%                         k_par, Sph_obs_welch_nn{tt, rr}, 'k', ...
+%                         k_par, R_obs_welch_nn{tt}(:, rr), 'r');
+                    
                 else
-                    %                     hold on;
-                    loglog(k_par, Spwr_obs_period{tt, rr}, 'c', ...
-                        k_par, Sph_obs_period{tt, rr}, 'g', ...
-                        k_par, R_obs_period{tt}(:, rr), 'm');
+                    % hold on;
+                    loglog(k_par, Spwr_obs_period{tt, rr}, '*b', ...
+                        k_par, Sph_obs_period{tt, rr}, '*k', ...
+                        k_par, R_obs_period{tt}(:, rr), '*r');
+                    hold on
+                    loglog(k_par, Spwr_obs_period_nn{tt, rr}, 'c', ...
+                        k_par, Sph_obs_period_nn{tt, rr}, 'g', ...
+                        k_par, R_obs_period_nn{tt}(:, rr), 'm');
                 end
                 xlim(xl);
                 ylim([10^-6, 10^2]);
                 %                     set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
                 title('Observed Log-Amplitude to Phase Power Spectrum Ratio');
-                legend({'Log-Amplitude', 'Phase', 'Ratio'}, 'location', 'southwest');
+                legend({
+                    'Noise Ratio', 'Noise Log-Amplitude', 'Noise Phase',...
+                    'Noise Free Log-Amplitude', 'Noise Free Phase', 'Noise Free Ratio'}, 'location', 'southwest');
+                    
+                    
                 xlabel(['Wavenumber along Drift Velocity Direction $\kappa_v$ [rad/m], ', sitenum_op{rr, :}]);
                 %                     legend({'Phase','Log_{10} Power'},'location','best')
                 tightfig;
@@ -958,6 +1127,32 @@ for i_dtau = 1:length(v_dtau)
                 plotpath = [op_path, plotname, suffix];
                 saveas(gcf, plotpath, format);
                 close;
+                end
+                
+                % PLOT OF OBSERVED RATIO WITH NOISE
+%                 if welch %No noise added analysis
+%                     loglog(k_par, R_obs_welch{tt}(:, rr), 'g*', 'MarkerSize',0.5);
+%                     hold on;
+%                     loglog(k_par, R_obs_welch_nn{tt}(:, rr), 'r');
+%                  else
+%                     loglog(k_par, R_obs_period{tt}(:, rr), 'g*','MarkerSize',0.5);
+%                     hold on
+%                     loglog(k_par, R_obs_period_nn{tt}(:, rr), 'r'); %nn no noise added
+%                 end
+%                 xlim(xl);
+%                 ylim([10^-6, 10^2]);
+%                 %                        set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
+%                 title('Observed Log-Amplitude to Phase Power Spectrum Ratio');
+%                 legend({'Observed Ratio with noise data','Observed Ratio'}, 'location', 'southwest');
+%                 xlabel(['Wavenumber along Drift Velocity Direction $\kappa_v$ [rad/m], ', sitenum_op{rr, :}]);
+%                 %                     legend({'Phase','Log_{10} Power'},'location','best')
+%                 tightfig;
+%                 plotname = [year, '_', doy, '_PRN', num2str(prn), '_', sitenum_op{rr, :}, '_ObservedRatio_', ...
+%                     num2str(tslist(tt), '%.0f'), '-', num2str(telist(tt), '%.0f'), 's_after_', ...
+%                     datestr(init_time, 'HHMM'), 'UT', '_nonoise'];
+%                 plotpath = [op_path, plotname, suffix];
+%                 saveas(gcf, plotpath, format);
+%                 close;
             end
             fighat = figure;
             if size(rcvr_op, 1) > 2
@@ -968,44 +1163,60 @@ for i_dtau = 1:length(v_dtau)
             end
             [sp, ~] = tight_subplot(size(rcvr_op, 1), 1, [0, 0.03], [0.11, 0.05], [0.11, 0.05]);
             for rr = 1:size(rcvr_op, 1)
-                 if isnan(ep_min(:,rr))
+                 if isnan(ep_min_n(n,rr))
                     disp(['No L found'])
                     continue
-                end
+                 end
+                for n=1:numsim 
                 [R_rytov_hat, k_par, k_par_index, R_Bust] = Lz(vmag, vang, ...
-                    AZ(tt, rr), ZE(tt, rr), L_hat(:, rr), z_hat(:, rr), f);
+                    AZ(tt, rr), ZE(tt, rr), L_hat_n(n, rr), z_hat_n(n, rr), f);
                 [R_rytov_fixed, ~, k_par_index_Bust, R_Bust_fixed] = Lz(vmag, vang, ...
                     AZ(tt, rr), ZE(tt, rr), 500e3, 200e3, f);
                 k_par_c = k_par(k_par_index, :);
                 R_rytov_hat_c{tt}(:, rr) = R_rytov_hat(k_par_index, :);
-                R_obs_c(:, rr) = R_obs(k_par_index, rr);
+                %R_obs_c(:, rr) = R_obs(k_par_index, rr);
+                R_obs_c(:, rr) = R_obs_n{n}(k_par_index, rr);
                 if debug
                     loglog(sp(rr), k_par_c, R_obs_c(:, rr), 'r', ...
                         k_par_c, R_rytov_hat_c{tt}(:, rr), 'c', ...
                         k_par_c, R_Bust(k_par_index), 'k', ...
                         k_par_c, R_rytov_fixed(k_par_index), 'g', ...
                         k_par_c, R_Bust_fixed(k_par_index), 'b');
+                    if n==1
                     legend(sp(rr), ['Observed, ', sitenum_op{rr, :}], ...
                         ['R, $\hat{L}=', num2str(L_hat(:, rr)/10^3), '$, $\hat{z}=', num2str(z_hat(:, rr)/10^3), '$'], ...
                         'B, -', ...
                         'R, $\hat{L}=500$, $\hat{z}=200$', ...
                         'B, -', ...
                         'location', 'northwest', 'orientation', 'horizontal');
+                    end
                 else
                     loglog(sp(rr), k_par_c, R_obs_c(:, rr), 'r', ...
                         k_par_c, R_rytov_hat_c{tt}(:, rr), 'c');
+                    hold(sp(rr),'on')
+                    if n==1
                     legend(sp(rr), ['Observed, ', sitenum_op{rr, :}], ...
-                        ['Rytov, $\hat{L}=', num2str(L_hat(:, rr)/10^3), ...
-                        '$, $\hat{z}=', num2str(z_hat(:, rr)/10^3), '$'], ...
-                        'location', 'southeast');
+                        'Rytov', 'location', 'southeast'); %, $\hat{L}$ mean=', num2str(L_hat(:, rr)/10^3), ...
+                        %'$\hat{z}$ mean=', num2str(z_hat(:, rr)/10^3), '$'], ...
+                        
+                    end 
+                end
                 end
                 xlim(sp(rr), xl);
                 ylim(sp(rr), [10^-5, 10^2.5]);
-                %                     set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
-                %                     ylim([1e-5*0.99 1e2*1.01]);
+                                   %  set(gca,'YTick',[1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2]);
+                                    % ylim([1e-5*0.99 1e2*1.01]);
+                
+                
+%                 MEGA_LZ(tt, rr, :) = [datenum(tslist(tt)/24/3600+init_time), ...
+%                     datenum(telist(tt)/24/3600+init_time), ...
+%                     L_hat(:, rr) / 10^3, z_hat(:, rr) / 10^3, ...
+%                     ep_min(:, rr)];
                 MEGA_LZ(tt, rr, :) = [datenum(tslist(tt)/24/3600+init_time), ...
                     datenum(telist(tt)/24/3600+init_time), ...
-                    L_hat(:, rr) / 10^3, z_hat(:, rr) / 10^3, ep_min(:, rr)];
+                    L_hat(:, rr) / 10^3, z_hat(:, rr) / 10^3, ...
+                    L_hat_n(:, rr)' /10^3, z_hat_n(:, rr)' / 10^3, ...
+                    ep_min(:, rr)];
             end
 %             MEGA_LZ
             title(sp(1), 'Rytov and Observed Log-Amplitude to Phase Power Spectrum Ratio');
@@ -1026,16 +1237,31 @@ for i_dtau = 1:length(v_dtau)
             for rr = 1:size(rcvr_op, 1)
                 MEGA_LZ(tt, rr, :) = [datenum(tslist(tt)/24/3600+init_time), ...
                     datenum(telist(tt)/24/3600+init_time), ...
-                    NaN, NaN, NaN];
+                    NaN, NaN, NaN(1,numsim), NaN(1,numsim), NaN,];
             end
         end
         %         keyboard;
     end
     if isempty(tslist) && isempty(telist)
         for rr = 1:size(rcvr_op, 1)
-           % MEGA_LZ(tt, rr, :) = NaN(1, 5);
+            MEGA_LZ(tt, rr, :) = NaN(1, 5);
         end
     end
+end
+
+if flagplotmin == 1
+L_hat_vector = L_hat_n(:);
+z_hat_vector = z_hat_n(:);
+fighis3=figure;
+sp1 = subplot(2,1,1);
+histogram(L_hat_vector/1000);
+sp2 = subplot(2,1,2);
+histogram(z_hat_vector/1000);
+title(sp1,'Histogram');
+ylabel(sp1, 'L_hat') 
+ylabel(sp2, 'z_hat')
+saveas(gcf, [hr_path,'Lz_histogram'], 'png');
+close
 end
 
 eststruct = struct('prn', prn, 't0', ESTV(:, 1), 'tf', ESTV(:, 2), ...
@@ -1058,6 +1284,8 @@ xcorr_te = toc;
 disp(['Plotting lasted ', num2str(hrplot_te), 's'])
 disp(['Drift estimation lasted ', num2str(xcorr_te), 's']);
 close all;
+
+
 % return;
 %actual interval taken for cross-correlation
 ta = datevec(init_time+t([1, end])/24/3600);
@@ -1069,7 +1297,12 @@ ts_cc = [tlim(1), tlim(2)];
 % save(['/data1/home/ysu27/Dropbox/research/MEGAVEST_',num2str(prn),'.mat']);
 save([home_dir,sep,'high_rate.mat'],'RCVRNAME','init_time','rcvr_op','xdata_PRN')
 % plotmisc(xcorr_results,year,doy,prn);
-plotlz(prn, tstt, 'debug')
+if numsim==1
+    plotlz(prn,tstt,'debug')
+else
+    plotlz2(prn, tstt, 'debug',numsim)
+end
+
 % plotSAGAvsPFISR(prn,tstt,'ve_vn',fluct);
 plotSAGAvsPFISR(prn, tstt, 'debug',fluct);
 return;

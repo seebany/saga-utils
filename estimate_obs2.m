@@ -1,6 +1,6 @@
 function [tauaarrn_, taucarrn_, ccvalarrn_, ccerrarrn_, ...
-    tauaarr_, taucarr_, ccvalarr_, ccerrarr_] = ...
-    estimate_obs(rcvr_op, xdata, combos, flag)
+    tauaarr_, taucarr_, ccvalarr_, ccerrarr_,A_nu,phi_nu] = ...
+    estimate_obs2(rcvr_op, xdata, combos, flag,scale,numsim)
 % Construct observations for the linear system
 dbstop if error;
 
@@ -22,17 +22,30 @@ end
 if strcmp(flag, 'phase')
     colnum = 3;
     dt = 0.01;
+    fluct = 0;
 elseif strcmp(flag, 'power')
-    colnum = 2;
+    colnum = 2;  
     dt = 0.01;
+    fluct = 1;
 elseif strcmp(flag, 'JROph')
     colnum = 3;
     dt = 0.02;
+    fluct = 0;
 elseif strcmp(flag, 'JROpow')
     colnum = 2;
     dt = 0.02;
+    fluct = 1;
 end
+% Generate normally distributed gaussian noise
+%numsim = 100;
 
+
+if colnum == 2
+    for i = 1:size(combos,1)
+        xdata{combos(i,1)}(:,colnum) = detrend(xdata{combos(i,1)}(:,colnum));
+        xdata{combos(i,2)}(:,colnum) = detrend(xdata{combos(i,2)}(:,colnum));
+    end
+end
 data = horzcat(xdata{:});
 tmat = data(:, 1:size(xdata{1}, 2):end);
 obsmat = data(:, colnum:size(xdata{1}, 2):end);
@@ -44,41 +57,111 @@ rhomax = max(rhoarr);
 perms = sortrows([combos; fliplr(combos); repmat([1:size(rcvr_op, 1)]', 1, 2)]);
 % [~, accols] = ismember(repmat([1:size(rcvr_op, 1)]', 1, 2), perms, 'rows');
 
-% Generate normally distributed gaussian noise
-numsim = 1000;
-scale = mean(std(obsmat, 0, 1));
-scale = 0.25;
-noisearr = scale * randn(size(obsmat, 1), size(obsmat, 2), numsim);
-if nargin == 0
-    figphase = figure;
-    subplot(2, 1, 2);
-    hold on;
-    hwn = plot(tmat, obsmat+noisearr(:, :, 1), 'g.');
-    hwon = plot(tmat, obsmat, 'k', 'linewidth', 0.5);
-    legend([hwn(1), hwon(1)], {'noisy $\tilde{\phi}$', 'original $\phi$'}, ...
-        'orientation', 'horizontal', 'location', 'northwest');
-    ylim([-2 * pi, 2 * pi]);
-    xlabel('Time [s]');
-    ylabel('Phase [rad]');
-    xlim([min(min(tmat)) - 1, max(max(tmat)) + 1]);
-    title({'Filtered receiver phase measurements ensemble n = 1'; ['with white gaussian noise $\sigma_w^2 = $', num2str(scale^2)]});
-    [~, path] = ver_chk;
-    saveas(figphase, [path, 'IQ_zoom_', ...
-        num2str(min(tmat(:, 1)), '%.f'), '_', num2str(max(tmat(:, 1)), '%.f'), 'a.eps'], 'epsc2');
-    close(figphase);
+%scale =0.3;
+
+A_nu = scale* randn(size(xdata{1},1),size(rcvr_op,1),numsim); 
+phi_nu = (6.7*pi/180)*randn(size(xdata{1},1),size(rcvr_op,1),numsim); 
+% a =-pi/2;
+% b = pi/2;
+% phi_nu = a + (b-a).*rand(size(xdata{1},1),size(rcvr_op,1),numsim);
+noise = A_nu.* exp(1i.*phi_nu);
+
+fig =figure;
+cont=1;
+for i=1:size(noise,3) %Real and imag part of phasor noise of every simulation
+    for ii=1:100:size(noise,1)
+    y(cont,:) = imag(noise(ii,:,i));
+    x(cont,:) = real(noise(ii,:,i));
+    cont = 1 + cont;
+    end
 end
+
+for rcvr_noiseplot=1:size(x,2)
+    [color] = rx_color(rcvr_op(rcvr_noiseplot, :));
+    hold on
+    quiver(0*x(:,rcvr_noiseplot),0*y(:,rcvr_noiseplot),...
+        x(:,rcvr_noiseplot),y(:,rcvr_noiseplot),'Color', color);
+end
+title('Complex noise added to signal (sample of 1/100)')
+xlabel('Real noise')
+ylabel('Imaginary noise')
+legend(rcvr_op);
+plotname = ['Complex_noise'];
+[~, path] = ver_chk;
+saveas(gcf, [path,plotname], 'png');
+close
+
+
+cont =1;
+for i=1:size(noise,3) %Real and imag part of phasor noise of every simulation
+    for ii=1:1:size(noise,1)
+    A_nu_plot(cont,:) = A_nu(ii,:,i);
+    phi_nu_plot(cont,:) = phi_nu(ii,:,i);
+    cont = 1 + cont;
+    end
+end
+clear cont
+
+fighis=figure;
+sp1 = subplot(2,1,1)
+histogram(A_nu_plot);
+sp2 = subplot(2,1,2)
+histogram(phi_nu_plot);
+title(sp1,'Histogram');
+ylabel(sp1, 'A_nu') 
+ylabel(sp2, 'phi_nu')
+saveas(gcf, [path,'Noise_histogram'], 'png');
+close
+
+tmat2 = ones(size(tmat,1)*10,size(tmat,2));
+for i=1:numsim
+    tmat2((i-1)*size(tmat,1)+1:(i)*size(tmat,1),:) = tmat(:,:);
+end
+
+fighis2=figure;
+sp1 = subplot(2,1,1)
+hist3([A_nu_plot(:,1),tmat2(:,1)]);
+sp2 = subplot(2,1,2)
+hist3([phi_nu_plot(:,1),tmat2(:,1)]);
+title(sp1,'2D Histogram');
+xlabel(sp1, 'A_nu') 
+ylabel(sp1, 't')
+xlabel(sp2, 'phi_nu')
+ylabel(sp2, 't')
+saveas(gcf, [path,'Noise_histogram_2D'], 'png');
+close
+
 
 [taucarrn, tauaarrn, ccvalarrn, ccerrarrn] = deal(cell(length(combos), numsim));
 [taucarr, tauaarr, ccvalarr, ccerrarr] = deal(cell(length(combos), 1));
-figobs = figure;
+%figobs = figure;
 for k = 1:numsim
+    
     [tobsn_k, tobs_k] = deal([]);
     %     if verLessThan('matlab', '9.1.0')
     %         noisearr = randn(size(obsmat));
     %     else
     %         noisearr = wgn(size(obsmat, 1), size(obsmat, 2), 0);
     %     end
-    rhoarrn = xcorr(obsmat+noisearr(:, :, k));
+    
+    obsmat3=data(:, 2:size(xdata{1}, 2):end).*exp(1i.*data(:, 3:size(xdata{1}, 2):end)) + ...
+        noise(:, :, k); %noise is added to signal
+    if fluct == 1
+        obsmat2 = abs(obsmat3);
+    elseif fluct == 0
+        obsmat2 = angle(obsmat3);
+        for ind1=1:size(rcvr_op,1)
+            ind = find(((obsmat(:,ind1)>pi)&(obsmat2(:,ind1)<0))...
+                |(obsmat(:,ind1)-obsmat2(:,ind1)>2));
+            obsmat2(ind,ind1) = obsmat2(ind,ind1) + 2*pi;
+            ind2 = find(((obsmat(:,ind1)<(-pi))&(obsmat2(:,ind1)>0))...
+                |(obsmat(:,ind1)-obsmat2(:,ind1)<-2));
+            obsmat2(ind2,ind1) = obsmat2(ind2,ind1) - 2*pi;
+            clear ind ind2    
+        end
+    end
+    
+    rhoarrn = xcorr(obsmat2); 
     rhomaxn = max(rhoarrn);
     %loop through pairs of receivers
     for i = 1:length(combos)
@@ -127,16 +210,16 @@ for k = 1:numsim
             [ccl, ccr] = findmainlobe(cc, lag);
             [ccnl, ccnr] = findmainlobe(ccn, lag);
             title(['Receiver ', num2str(combos(i, 1)), ' \& ', num2str(combos(i, 2))]);
-            h2 = plot(lag*dt, ccn, 'g.', lag*dt, acn, 'r.', 'markersize', 1);
+            h2 = plot(lag*dt, ccn, 'g.', lag*dt, acn, 'r.', 'markersize', 10);
             xlabel('Lag [s]');
             [acl, acr] = findmainlobe(ac, lag);
             [acnl, acnr] = findmainlobe(acn, lag);
             legend('$\rho_{ij}$', '$\rho_{ii}$', ...
                 '$\tilde{\rho_{ij}}$', '$\tilde{\rho_{ii}}$');
-            xlim([min([acl, ccl, acnl, ccnl]), max([acr, ccr, acnr, ccnr])]*dt);
-            ylim([-0.08, 1.02]);
+           xlim([min([acl, ccl, acnl, ccnl]), max([acr, ccr, acnr, ccnr])]*dt);
+           ylim([-0.08, 1.02]);
             tightfig;
-            saveas(figrawcorr, '../ccexp.pdf');
+            %saveas(figrawcorr, '../ccexp.pdf');
             %             keyboard;
             close(figrawcorr);
         end
@@ -208,18 +291,29 @@ function [tmprowscc, tobs, tau_c, tau_a, ccval, errs] = ...
 %     findpeaks(cc, lag, 'annotate', 'extents', 'widthreference', 'halfheight');
 
 %above a cut-off, i.e. 0.6
-rhocutoff = 0.5;
+rhocutoff = 0.65;
 nearzero = 1e-2;
 % nearzero = 0.1;
 
 lagmax = lag(cc == max(cc));
-[laglcc, lagrcc] = findmainlobe(cc, lag);
+[laglcc, lagrcc] = findmainlobe(cc, lag);  
 [laglac, lagrac] = findmainlobe(ac, lag);
+if isempty(lagrac)
+    tobs = [];
+    tau_c = [];
+    tau_a = [];
+    ccval = [];
+    errs = [];
+    tmprowscc = [];
+    return
+end
 tmprowsac = find(ac' > 0 & lag > 0 & lag < lagrac);
+
 
 if ~strcmp(flag, 'noisy')
     %take the lag positive side of the main lobe
-    tmprowscc = find(cc' >= rhocutoff & lag >= lagmax & lag < lagrcc);
+    %tmprowscc = find(cc' >= rhocutoff & lag >= lagmax & lag < lagrcc);
+    tmprowscc = find(lag >= lagmax & lag < lagrcc);
 else
     tmprowscc = rowscc;
 end
@@ -302,9 +396,8 @@ if ~isempty(tmprowscc)
     ccval = cc(tmprowscc)';
     tobs = tau_a.^2 - tau_c.^2;
     if any(abs(tau_a-tau_c) > 10)
-        lagmax
-        [laglcc, lagrcc] = findmainlobe(cc, lag)
-        [laglac, lagrac] = findmainlobe(ac, lag)
+        [laglcc, lagrcc] = findmainlobe(cc, lag);
+        [laglac, lagrac] = findmainlobe(ac, lag);
     end
     if debugflag == 0
         figcc = figure;

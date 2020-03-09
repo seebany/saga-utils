@@ -1,4 +1,4 @@
-function [events] = findhrtimes(year, doy)
+function [events] = findhrtimes(year, doy,fluct)
 
 dbstop if error;
 
@@ -15,7 +15,15 @@ if nargin == 0
     %     year = '2015';
     %     doy = '076';
 end
-load([mat_path, 'lrtimes_', year, '_', doy, '.mat']);
+if fluct==0
+    load([mat_path, 'lrtimes_', year, '_', doy, '.mat']);
+elseif fluct==1
+    load([mat_path, 'lrtimesampl_', year, '_', doy, '.mat']);
+    MSP=MS4;
+    spth_hr=s4th_hr;
+    TSP_hr0=TS4_hr0;
+    TSP_hrv0=TS4_hrv0;
+end
 
 % prn = TSP_hr(:,1);
 % t0 = TSP_hr(:,2);
@@ -26,12 +34,21 @@ load([mat_path, 'lrtimes_', year, '_', doy, '.mat']);
 tlim1 = datenum([str2double(year), 0, 0, 0, 0, 0]) + str2double(doy);
 tlim = [tlim1, tlim1 + 1];
 
-clim = [0, 2 * pi];
-datalim = clim(2);
-cblabel = '$\sigma_\Phi$ [rad]';
+
+if spth_hr==0.2
+    cblabel = '$S_4$';
+    clim = [0, 0.5];
+    datalim = clim(2);
+else
+    cblabel = '$\sigma_\Phi$ [rad]';
+    clim = [0, 2 * pi];
+    datalim = clim(2);
+end
 
 prnlist = unique(TSP_hr0(:, 1));
 
+prnlist
+TSP_hr0
 
 tseg = cell(1, length(prnlist));
 for kk = 1:size(prnlist, 1)
@@ -130,8 +147,12 @@ set(gca, 'XGrid', 'on', 'YGrid', 'on', 'Ytick', (maxvalid - kk):kk-1, ...
     'YTickLabel', a);
 Tick = get(gca, 'xtick');
 xlabel(['Time [HH UT] on ', datestr(Tick(1), 'mm/dd/yyyy')]);
-title(['Potential Scintillating Times after $\sigma_{\Phi}$ threshold [rad]: ', ...
+if spth_hr==0.2
+    title(['Potential Scintillating Times after $S_4$ threshold']);
+else
+    title(['Potential Scintillating Times after $\sigma_\Phi$ [rad] threshold', ...
     num2str(spth_hr')]);
+end
 plotname = ['hrtimes_', year, '_', doy];
 % plotpath = [op_path, plotname, '.eps'];
 % saveas(gcf, plotpath, 'epsc2');
