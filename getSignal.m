@@ -1,3 +1,13 @@
+%function [signal, freq] = getSignal(signal_type)
+% takes as input signal_type = 0, 2.
+% and returns string signal, e.g., 'L1CA'
+% and frequency freq in Hz.
+% signal_types are numerical values as specified
+% in CASES receiver documentation at
+% http://cases.astraspace.net/documentation/scintdef.txt
+% 
+% Commented by S. Datta-Barua 1 July 2020
+
 function [signal, freq] = getSignal(signal_type)
 switch signal_type
     case 0

@@ -1,3 +1,16 @@
+%function [tauaarrn_, taucarrn_, ccvalarrn_, ccerrarrn_, ...
+%    tauaarr_, taucarr_, ccvalarr_, ccerrarr_,A_nu,phi_nu] = ...
+%    estimate_obs2(rcvr_op, xdata, combos, flag,scale,numsim)
+% takes in high-rate data from all operational receivers, simulates
+% noise on the signals, and estimates the cross-correlation for
+% all pairs.
+%
+% Yang Su 2018
+% Modified by Aurora Lopez 2019 to have the noise simulation at this stage.
+% Commented by S. Datta-Barua 9 June 2020
+% A_nu is the simulated noise amplitude matrix [npts x numrx x numsim].
+% phi_nu is the simulated noise phase matrix [npts x numrx x numsim].
+
 function [tauaarrn_, taucarrn_, ccvalarrn_, ccerrarrn_, ...
     tauaarr_, taucarr_, ccvalarr_, ccerrarr_,A_nu,phi_nu] = ...
     estimate_obs2(rcvr_op, xdata, combos, flag,scale,numsim)
@@ -39,7 +52,7 @@ end
 % Generate normally distributed gaussian noise
 %numsim = 100;
 
-
+% SDB 7/6/20 Power seems to be detrended here with Matlab built-in linear trend removal.  Not sure why.
 if colnum == 2
     for i = 1:size(combos,1)
         xdata{combos(i,1)}(:,colnum) = detrend(xdata{combos(i,1)}(:,colnum));
@@ -57,7 +70,10 @@ rhomax = max(rhoarr);
 perms = sortrows([combos; fliplr(combos); repmat([1:size(rcvr_op, 1)]', 1, 2)]);
 % [~, accols] = ismember(repmat([1:size(rcvr_op, 1)]', 1, 2), perms, 'rows');
 
-%scale =0.3;
+% This scale factor is based on A. Lopez's experience of typical amplitude variations between receivers.  Hardcoded because if fluct is set to analyze phase scintillations, then scale will correspond to the sigma of the phase fluctuations rather than of the amplitude. SDB 6/9/20
+% Also note that the Gaussian noise was originally coded to be on the power,
+% but it's the amplitude that is Gaussian, so adjust noise to be on amplitude.
+scale =0.1;%sqrt(0.3);
 
 A_nu = scale* randn(size(xdata{1},1),size(rcvr_op,1),numsim); 
 phi_nu = (6.7*pi/180)*randn(size(xdata{1},1),size(rcvr_op,1),numsim); 
@@ -66,6 +82,7 @@ phi_nu = (6.7*pi/180)*randn(size(xdata{1},1),size(rcvr_op,1),numsim);
 % phi_nu = a + (b-a).*rand(size(xdata{1},1),size(rcvr_op,1),numsim);
 noise = A_nu.* exp(1i.*phi_nu);
 
+% Some diagnostic plots.-----------------
 fig =figure;
 cont=1;
 for i=1:size(noise,3) %Real and imag part of phasor noise of every simulation
@@ -91,50 +108,54 @@ plotname = ['Complex_noise'];
 saveas(gcf, [path,plotname], 'png');
 close
 
-
-cont =1;
-for i=1:size(noise,3) %Real and imag part of phasor noise of every simulation
-    for ii=1:1:size(noise,1)
-    A_nu_plot(cont,:) = A_nu(ii,:,i);
-    phi_nu_plot(cont,:) = phi_nu(ii,:,i);
-    cont = 1 + cont;
-    end
-end
-clear cont
+% SDB 7/7/20 Loops not needed for plotting.
+%cont =1;
+%for i=1:size(noise,3) %Real and imag part of phasor noise of every simulation
+%    for ii=1:1:size(noise,1)
+%    A_nu_plot(cont,:) = A_nu(ii,:,i);
+%    phi_nu_plot(cont,:) = phi_nu(ii,:,i);
+%    cont = 1 + cont;
+%    end
+%end
+%clear cont
 
 fighis=figure;
 sp1 = subplot(2,1,1)
-histogram(A_nu_plot);
+histogram(A_nu);%histogram(A_nu_plot);
 sp2 = subplot(2,1,2)
-histogram(phi_nu_plot);
+histogram(phi_nu);%histogram(phi_nu_plot);
 title(sp1,'Histogram');
-ylabel(sp1, 'A_nu') 
-ylabel(sp2, 'phi_nu')
+ylabel(sp1, 'A_\nu') 
+ylabel(sp2, 'phi_\nu')
 saveas(gcf, [path,'Noise_histogram'], 'png');
 close
 
-tmat2 = ones(size(tmat,1)*10,size(tmat,2));
-for i=1:numsim
-    tmat2((i-1)*size(tmat,1)+1:(i)*size(tmat,1),:) = tmat(:,:);
-end
+%tmat2 = ones(size(tmat,1)*10,size(tmat,2));
+%for i=1:numsim
+%    tmat2((i-1)*size(tmat,1)+1:(i)*size(tmat,1),:) = tmat(:,:);
+%end
+%
+%fighis2=figure;
+%sp1 = subplot(2,1,1)
+%
+%hist3([A_nu_plot(:,1),tmat2(:,1)]);
+%sp2 = subplot(2,1,2)
+%hist3([phi_nu_plot(:,1),tmat2(:,1)]);
+%title(sp1,'2D Histogram');
+%xlabel(sp1, 'A_nu') 
+%ylabel(sp1, 't')
+%xlabel(sp2, 'phi_nu')
+%ylabel(sp2, 't')
+%saveas(gcf, [path,'Noise_histogram_2D'], 'png');
+%close
+%--------------------------------
 
-fighis2=figure;
-sp1 = subplot(2,1,1)
-hist3([A_nu_plot(:,1),tmat2(:,1)]);
-sp2 = subplot(2,1,2)
-hist3([phi_nu_plot(:,1),tmat2(:,1)]);
-title(sp1,'2D Histogram');
-xlabel(sp1, 'A_nu') 
-ylabel(sp1, 't')
-xlabel(sp2, 'phi_nu')
-ylabel(sp2, 't')
-saveas(gcf, [path,'Noise_histogram_2D'], 'png');
-close
-
-
+% Initialize empty variables.
 [taucarrn, tauaarrn, ccvalarrn, ccerrarrn] = deal(cell(length(combos), numsim));
 [taucarr, tauaarr, ccvalarr, ccerrarr] = deal(cell(length(combos), 1));
 %figobs = figure;
+
+% Loop over k simulation number.
 for k = 1:numsim
     
     [tobsn_k, tobs_k] = deal([]);
@@ -144,12 +165,15 @@ for k = 1:numsim
     %         noisearr = wgn(size(obsmat, 1), size(obsmat, 2), 0);
     %     end
     
-    obsmat3=data(:, 2:size(xdata{1}, 2):end).*exp(1i.*data(:, 3:size(xdata{1}, 2):end)) + ...
-        noise(:, :, k); %noise is added to signal
+    % SDB 7/2/20 Since noise is on the amplitude, the complex signals must
+    % be added, and then the power is the signal times its complex conjugate.
+    psi_tilde =sqrt(data(:, 2:size(xdata{1}, 2):end)).*exp(1i.*data(:, 3:size(xdata{1}, 2):end)) + ...
+        noise(:, :, k); %noise is added to complex signal
     if fluct == 1
-        obsmat2 = abs(obsmat3);
+	% Look at correlation of power in decibels.
+        obsmat2 = 10*log10((abs(psi_tilde)).^2);
     elseif fluct == 0
-        obsmat2 = angle(obsmat3);
+        obsmat2 = angle(psi_tilde);
         for ind1=1:size(rcvr_op,1)
             ind = find(((obsmat(:,ind1)>pi)&(obsmat2(:,ind1)<0))...
                 |(obsmat(:,ind1)-obsmat2(:,ind1)>2));
@@ -163,7 +187,7 @@ for k = 1:numsim
     
     rhoarrn = xcorr(obsmat2); 
     rhomaxn = max(rhoarrn);
-    %loop through pairs of receivers
+    %loop through i pairs of receivers
     for i = 1:length(combos)
         [~, ijcol] = ismember(combos(i, :), perms, 'rows');
         %         [~, jicol] = ismember(combos(i,:), perms, 'rows');
@@ -186,6 +210,7 @@ for k = 1:numsim
         ac = rhoarr(:, iicol) / normscale;
         %     ac2(:, i) = rhomat(:,jjcol) / normscale;
         
+%keyboard
         ccn = rhoarrn(:, ijcol) / normscale;
         %     cc2n(:, i) = rhonmat(:,jicol) / normscale;
         acn = rhoarrn(:, iicol) / normscale;
@@ -229,22 +254,25 @@ for k = 1:numsim
         else
             debugflag = 1;
         end
+
+	% Simulation 1 is the noise-free version?  Or only need to do the first time. SDB 7/7/20
         if k == 1
             [rowscc{i}, tobs, tau_c, tau_a, ccval, ccerr] = ...
                 findrows(cc, ac, lag, dt, 'original', [], debugflag);
         end
-        
+        % For all simulations find the tau values.
+%keyboard        
         [~, tobsn, tau_cn, tau_an, ccvaln, ccerrn] = ...
             findrows(ccn, acn, lag, dt, 'noisy', rowscc{i}, debugflag);
         
         tobs_k = [tobs_k, tobs];
         tobsn_k = [tobsn_k, tobsn];
-        
         taucarrn{i, k} = tau_cn;
         tauaarrn{i, k} = tau_an;
         ccvalarrn{i, k} = ccvaln;
         ccerrarrn{i, k} = ccerrn;
         
+	% SDB 7/7/20 Only need to do the original signal the first time.
         if k == 1
             taucarr{i} = tau_c;
             tauaarr{i} = tau_a;
@@ -283,6 +311,7 @@ end
 toc;
 end
 
+% function findrows----------------------------------------
 function [tmprowscc, tobs, tau_c, tau_a, ccval, errs] = ...
     findrows(cc, ac, lag, dt, flag, rowscc, debugflag)
 % figpks = figure;
@@ -307,6 +336,7 @@ if isempty(lagrac)
     tmprowscc = [];
     return
 end
+% Find the rows of the auto-correlation that are on the main lobe to the right of the peak.
 tmprowsac = find(ac' > 0 & lag > 0 & lag < lagrac);
 
 
@@ -387,7 +417,9 @@ if ~isempty(tmprowscc)
         %         disp('There are NaNs in $tau_a$');
     end
     tau_a = lag(tmprowsac(rowsmin)) * dt;
-    tau_a(invalid) = NaN;
+% SDB 7/7/20 Commenting this change to Nans out because it seems to make
+% amplitude estimation with ensemble simulation give nan drift estimation. 
+%    tau_a(invalid) = NaN;
     if isempty(tau_a)
         tau_a = NaN(1, length(tmprowscc));
         errs = tau_a;
@@ -418,18 +450,28 @@ else
 end
 end
 
+% function findmainlobe------------------------------
 function [lagmainl, lagmainr] = findmainlobe(cc, lag)
+% This function identifies the main lobe of the cross-correlation.
+% For comparison to the autocorrelation.
+% S. Datta-Barua commenting 7/7/20
+
+% Find the time lag corresponding to the peak cross-correlation value. 
 if all(abs(flip(cc)-cc) < 1e-13)
     lagmax = 0;
 else
     lagmax = lag(cc == max(cc));
 end
 
+% Find times earlier than the peak lag time that cross from negative to positive valued, or vice versa.
 lagzerosl = lag((circshift(cc, 1) .* cc < 0 | circshift(cc, -1) .* cc < 0) & lag' < lagmax);
+% Find times later than the peak lag time that cross from negative to positive valued, or vice versa.
 lagzerosr = lag((circshift(cc, 1) .* cc < 0 | circshift(cc, -1) .* cc < 0) & lag' > lagmax);
 
+% Choose the minimum zero crossing to the right of the peak lag.
 [~, indminr] = min(lagzerosr-lagmax);
 lagmainr = lagzerosr(indminr);
+% Choose the maximum zero crossing to the left of the peak lag.
 [~, indminl] = max(lagzerosl-lagmax);
 lagmainl = lagzerosl(indminl);
 end

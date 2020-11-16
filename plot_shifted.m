@@ -1,6 +1,19 @@
+% Function plot_shifted.m plots CASES high-rate power and phase for as many
+% receivers are given, time-shifting each receiver's time series so they
+% are all aligned as much as possible.
+%
+% Created by Y. Su 2018
+% Possibly modified by A. Lopez-Rubio 2019
+% Commented by S. Datta-Barua 2 Apr 2020.  Adding output handles to figures
+% so that calling function can save.
+% 8 June 2020 SDB Just comment out plotting and keep only the ph_truncated and pwr_truncated output vars.
+
 function [ph_truncated, pwr_truncated] = ...
     plot_shifted(xdata, tpeak, rcvr_op, sitenum_op, combos, Fs, fluct)
 % load('lz.mat');
+fig_each =[];
+fig_all = [];
+
 combos_auto = [1:size(rcvr_op, 1); 1:size(rcvr_op, 1)]';
 [~, index] = sortrows([combos; fliplr(combos); combos_auto]);
 tpeaks = [tpeak'; -tpeak'; zeros(size(rcvr_op, 1), 1)];
@@ -29,8 +42,10 @@ rr_lag = rr_lag(lagsumsqr == min(lagsumsqr));
 % tmat(:,4) = tmat(:,4);
 % tmat(:,5) = tmat(:,5) - 2.13;
 
-fig_all = figure;
 [ph_shifted, pwr_shifted, ph_truncated, pwr_truncated] = deal(cell(1, size(rcvr_op, 1)));
+return
+
+fig_all = figure;
 for rr = 1:size(rcvr_op, 1)
     if (tpeaks_array(rr_lead, rr) * Fs + 1)<1
         return
@@ -56,10 +71,10 @@ end
 end
 set(sp(1:(end -1)), 'xticklabel', []);
 legend(sp(1), sitenum_op, 'orientation', 'horizontal');
-tightfig;
+fig_all = tightfig;
 %saveas(fig_all, '../../../all', 'png');
-saveas(fig_all, '/data1/home/alopez35/mfigures/all', 'png');
-close;
+%saveas(fig_all, '/data1/home/alopez35/mfigures/all', 'png');
+%close;
 
 fig_each = figure;
 if size(rcvr_op, 1) > 2
@@ -80,8 +95,14 @@ for rr = 1:size(rcvr_op, 1)
 end
 set(sp(1:end-1), 'xticklabel', []);
 set(sp(2:2:end), 'yticklabel', []);
-tightfig;
+fig_each = tightfig;
 %saveas(fig_each, '../../../each', 'png');
-saveas(fig_each, '/data1/home/alopez35/mfigures/each', 'png');
+%saveas(fig_each, '/data1/home/alopez35/mfigures/each', 'png');
 
-close;
+%if ~exist('fig_each')
+%	fig_each = [];
+%end
+%if ~exist('fig_all')
+%	fig_all = [];
+%end
+%close;

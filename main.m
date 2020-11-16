@@ -1,10 +1,13 @@
-function [] = main(yearin, doyin, lronlyflag, fluct, prnlist_in, init_time_in, xtime_in)
-%% usage
+function [] = main(yearin, doyin, lronlyflagin, signal_typein, fluctin, prnlist_in, init_time_in, xtime_in)
+% function [] = main(yearin, doyin, lronlyflagin, signal_typein, fluctin, prnlist_in, init_time_in, xtime_in)
+% performs all SAGA low-rate and then high-rate processing.
+% Inputs are:
 % yearin, doyin : required; i.e. [2015:2017], [1:365]
-% lronlyflag [1/0] : required; 1, do low-rate only processing; 0, both hr and lr
+% lronlyflagin [1/0] : required; 1, do low-rate only processing; 0, both hr and lr
+% signal_typein : required; 0 for L1CA or 2 for L2C.
+% fluctin : required type of fluctuation: phase=0, amplitude=1
 % prnlist_in [a vector] : optional; specify a list of PRN to override detected event satellites
 % init_time_in [datevec], xtime_in [s] : optional; i.e. [2015, 10, 7, 3, 6, 2, 0, 0], [200, 1200]
-% fluct = type of fluctuation: phase=0, amplitude=1
 %% Initialization
 close all;
 dbstop if error;
@@ -49,27 +52,54 @@ yesterday = str2num(yesterday);
 comm1 = 'date -u -d "a day ago" +%Y';
 [~, year] = system(comm1);
 
-switch nargin
-    % run for yesterday
-    case {0}
-        yearlist = str2num(year);
-        doylist = yesterday;
-        doyin = yesterday;
-        lronlyflag = 1;
-    % run for year and doy, with lronlyflag
-    case {3}
-        yearlist = yearin;
-        doylist = doyin;
-    % run for year and doy and one single specific prn w/o specific period
-    case {5, 7}
-        yearlist = yearin;
-        doylist = doyin;
-        % looks at high rate data, so lronlyflag should always be 0
-        lronlyflag = 0;
-        prnlist = prnlist_in;
-    otherwise
-        error('Not enough inputs');
+% Set defaults if any inputs are unspecified.
+yearlist = str2num(year);
+doylist = yesterday;
+%doyin = yesterday;
+lronlyflag = 1;
+signal_type = 0;
+fluct = 0;
+
+if exist('yearin', 'var')
+	yearlist = yearin;
 end
+if exist('doyin','var')
+	doylist = doyin;
+end
+if exist('lronlyflagin', 'var')
+	lronlyflag = lronlyflagin;
+end
+if exist('signal_typein', 'var')
+	signal_type = signal_typein;
+end
+if exist('fluctin','var')
+	fluct = fluctin;
+end
+if exist('prnlist_in','var')
+        prnlist = prnlist_in;
+end
+%switch nargin
+%    case {0}
+%    % run for yesterday
+%    
+%    case {2}
+%    % run for year and doy, with lronlyflag
+%        yearlist = yearin;
+%        doylist = doyin;
+%    case 3
+%        yearlist = yearin;
+%        doylist = doyin;
+%	lronlyflag = lronlyflagin;
+%    % run for year and doy and one single specific prn w/o specific period
+%    case {5, 7}
+%        yearlist = yearin;
+%        doylist = doyin;
+%        % looks at high rate data, so lronlyflag should always be 0
+%        lronlyflag = 0;
+%        prnlist = prnlist_in;
+%    otherwise
+%        error('Not enough inputs');
+%end
 %%
 SD = [];
 SD4 = [];
@@ -78,7 +108,7 @@ MSP_days = [];
 MS4_days = [];
 SCINTEVENTS = [];
 %specify signal
-for signal_type = 0 %[0, 2]
+%for signal_type = 0 %[0, 2]
     for yearnum = yearlist
         year = num2str(yearnum, '%04i')
         % for doy = yesterday
@@ -291,7 +321,7 @@ for signal_type = 0 %[0, 2]
                 TSP_hrv0
                 TSP_hr = TSP_hr0;
             elseif isempty(dir(lrtimesfileampl))&& (fluct==1) %meaning is an amplitude case
-                disp([lrtimesfileampl, 'doesn not exist']);
+                disp([lrtimesfileampl, 'does not exist']);
                 [mega_t, TS4_hr0, TS4_hrv0] = find_general_times_amp(MS4, rcvr_op, s4th_hr);
                 save(lrtimesfileampl, 'MS4', 'rcvr_op', 's4th_hr', 'TS4_hr0', 'TS4_hrv0');
                 TS4_hrv0
@@ -552,5 +582,5 @@ for signal_type = 0 %[0, 2]
         csvwrite([op_path, 'ScintillationEvents_short_', year, '.csv'], SCINTEVENTS);
         
     end
-end
+%end
 % fclose(fid1);

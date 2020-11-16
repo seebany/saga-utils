@@ -8,7 +8,6 @@ function [h] = plot_Lz(Lz_filename)
 % 17 Sept 2019
 
 load(Lz_filename);
-
 % Loop through each estimation time.
 for i = 1:numel(ts)
     x = [ts(i) te(i) te(i) ts(i) ts(i)]';

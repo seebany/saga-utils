@@ -385,7 +385,7 @@ if nargin ~= 0
                     varargout = {};
                 end
                 end
-                legend(['PRN', num2str(prnlist), '$\surd$'],['PRN',num2str(prnlist),'$\times$'],'Location', 'Southoutside')
+                legend(['PRN', num2str(prnlist), '$\surd$'],['PRN',num2str(prnlist),'$\times$'],'Location', 'best')%'Southoutside')
                 tmp = strjoin(cellstr(num2str(prnlist', '%02i'))', '_');
                 a = {'SAGA', vflag, 'case', num2str(fluct), 'PRN', tmp, year, doy, datestr(tstt, 'HHMMUT'), ...
                     num2str(0.65), num2str(tau, '%gs'), '', fflagstr};

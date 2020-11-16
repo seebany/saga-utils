@@ -5,12 +5,17 @@
 % Adapting to use at IIT. S. Datta-Barua, 11 Sept 2013.
 %
 % Further adapted to use at IIT. Yang Su, 2014.
+% Filter CASES high-rate data.
 % %% Produce plots for each PRN.
 % 
 % close all
 % clear all
 
 function Fn_Plot_HighRate_CASESdata(KK,tstt,init_time,op_path,signal_type,set_plot,infilename,zcounter)
+
+% SDB 7/6/20 set filter cutoff here.
+cutoff = .1;%2.8;%0.3; % Hz
+fc = cutoff; % Hz
 
 %File separator for the selected operating system
 sep = filesep;
@@ -87,6 +92,8 @@ end
 % command = strcat('mkdir',{' '},folder_name,'PRN_files_',signal);
 % system(cell2mat(command));
 FiltDatadir = strcat(op_path,'hr_prn_files_',signal,sep);
+
+% Load in the data file that was generated with Fn_ReadHighRate*.m
 load(infilename);
 
 DATA = DATAM2;
@@ -103,6 +110,7 @@ fontsz = 12;
 marksz = 4;
 linestyle= '.';
 fontsz_lg = 10; %font size of legends
+
 
 %% Plots set A: Plot for each PRN with each segment zoomed in one all
 %processed data
@@ -296,7 +304,9 @@ for kk = KK; %1:1:32;%14;%,
                         % NFFT = 2^nextpow2(L);
                         % fft of phase data
                         wdata_fft = fftshift(fft(ifftshift(phaseph))); 
-                        cutoff = 0.1; %[Hz]
+% SDB 7/1/20 Adjusting cutoff frequency here to see what happens.
+% This segment does not appear to be visited because the for zmt loop is bypassed.			
+			%cutoff = 1e-2; %[Hz]
                         order = 6; %order of the butterworth filter
                         fsamp = 50; %[Hz]
                         %create a low pass butterworth filter Kernel
@@ -309,11 +319,12 @@ for kk = KK; %1:1:32;%14;%,
 
                         %AJ way for processing of power
                         Tdata = obstimezphd(end) - obstimezphd(1);
-                        if Tdata <=60,
-                            fc = 0.2;
-                        else
-                            fc = 0.1; %Desired cut off freq in Hz
-                        end
+                        % SDB 7/1/20 Adjusting filter cutoffs.
+			%if Tdata <=60,
+                        %    fc = cutoff;%0.2;
+                        %else
+                        %    fc = cutoff;%0.1; %Desired cut off freq in Hz
+                        %end
                         %sampling frequency
                         fsamp = round(1/(obstimezphd(4)-obstimezphd(3)));
                         norder = 6; %order of the butterworth filter
@@ -452,7 +463,7 @@ for kk = KK; %1:1:32;%14;%,
                     Lz = length(phase);
                     % NFFT = 2^nextpow2(L);
                     wdata_fft = fftshift(fft(ifftshift(phase))); % fft of phase data
-                    cutoff = 0.1; %[Hz]
+                    %cutoff = 0.1; %[Hz]
                     order = 6; %order of the butterworth filter
                     fsamp = 50; %[Hz]
                     %create a low pass butterworth filter Kernel
@@ -464,11 +475,11 @@ for kk = KK; %1:1:32;%14;%,
                     
                     %AJ way for processing of power
                     Tdata = obstimez(end) - obstimez(1);
-                    if Tdata <=60,
-                        fc = 0.2;
-                    else
-                        fc = 0.1; %Desired cut off freq in Hz
-                    end
+                    %if Tdata <=60,
+                    %    fc = 0.2;
+                    %else
+                    %    fc = 0.1; %Desired cut off freq in Hz
+                    %end
                     %sampling frequency
                     fsamp = round(1/(obstimez(4)-obstimez(3)));
                     norder = 6; %order of the butterworth filter
@@ -761,7 +772,9 @@ for kk = KK; %1:1:32;%14;%,
                     % NFFT = 2^nextpow2(L);
                     % fft of phase data
                     wdata_fft = fftshift(fft(ifftshift(phase))); 
-                    cutoff = 0.1; %[Hz]
+% SDB 7/6/20 testing filtering
+%keyboard
+                    %cutoff = 0.1; %[Hz]
                     order = 6; %order of the butterworth filter
                     fsamp = 50; %[Hz]
                     %create a low pass butterworth filter Kernel
@@ -775,11 +788,11 @@ for kk = KK; %1:1:32;%14;%,
                                     
                     %AJ way for processing of power
                     Tdata = obstimez(end) - obstimez(1);
-                    if Tdata <=60,
-                        fc = 0.2;
-                    else
-                        fc = 0.1; %Desired cut off freq in Hz
-                    end
+                    %if Tdata <=60,
+                    %    fc = 0.2;
+                    %else
+                    %    fc = 0.1; %Desired cut off freq in Hz
+                    %end
                     %sampling frequency
                     fsamp = round(1/(obstimez(4)-obstimez(3)));
                     norder = 6; %order of the butterworth filter

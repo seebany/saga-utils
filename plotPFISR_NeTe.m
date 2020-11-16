@@ -44,7 +44,6 @@ end
 %codetype ='lp'; %'ac'
 alt_cutoff = 195; % km
 mat_path = '~/matfiles/pfisr/';
-
 switch codetype
     case 'lp'
 % Load long pulse data.
@@ -86,7 +85,6 @@ cols = [17, 19, 12, 6, 2, 9, 1, 14]; cols2 = 16; cols3 = 8;
             %];
         clear cols cols2 cols3
 end    
-
 % columns
 % 1:DATENUM,2:AZM,3:ELM,4:BEAMID,5:RANGE,6:NEL,7:DNEL,8:TI,9:DTI,10:TE,11:DTE
 data = [datenum(PFISR_data(:,1:6)), PFISR_data(:,7:end)];
@@ -128,7 +126,6 @@ data = data(data(:,5) > alt_cutoff,:);
     case 'ac'
         data = data(data(:,5) <= alt_cutoff, :);
 end
-
 if ~isempty(data)
     beamid = unique(data(:, 4), 'stable');
     % Select the vertical beam which has ID 64016. Southern beam has beam
@@ -225,7 +222,7 @@ if ~isempty(data)
         grid off;
         xlabel('Time [HH:MM UT]');
         ylabel('Altitude [km]');
-        ylim([80, 600]);
+        ylim([50, 700]);
         xlim(datenum([t1; t2]));
         datetick('x', 'HH:MM', 'keeplimits');
         
@@ -272,17 +269,21 @@ if ~isempty(data)
         end
         end
         
-        plot(ax(1:2), [alt_cutoff alt_cutoff], 'k', 'LineWidth', 2);
-        plot(ax(1:2), [150 150], 'k', 'LineWidth', 2);
-        plot(repmat(scintstart, 2, 1), ax(3:4), 'k', 'LineWidth',2);
-        plot(repmat(scintend, 2, 1), ax(3:4), 'k', 'LineWidth', 2);
+%        plot(ax(1:2), [alt_cutoff alt_cutoff], 'k', 'LineWidth', 2);
+%        plot(ax(1:2), [150 150], 'k', 'LineWidth', 2);
+%        plot(repmat(scintstart, 2, 1), ax(3:4), 'k', 'LineWidth',2);
+%        plot(repmat(scintend, 2, 1), ax(3:4), 'k', 'LineWidth', 2);
         
-        if floor(t1) == datenum([2013 12 8])
-            plot_Lz('lzdata2013doy342.mat');
-        end
+%        if floor(t1) == datenum([2013 12 8])
+%            plot_Lz('lzdata2013doy342.mat');
+	    [year,~,~,~,~,~] = datevec(t1);
+            plot_Lz(['~/mfiles/saga/' datestr(now, 'yymmdd') '_lzdata' ...
+		datestr(t1, 'yyyy') 'doy' num2str(floor(t1) - datenum([year 0 0])) ...
+		'.mat']);
+%        end
         
         plotname = strjoin({'pfisr', datestr(t1,'yymmdd_HHMM'), num2str(beamid(ibeam)), flag, deltaflag, 'cutoff195&150'}, '_');
-        plotpath = [op_path, plotname, '.png'];
+        plotpath = [op_path, plotname, '.png']
         saveas(gcf, plotpath, 'png');
         savefig(gcf, [plotpath, '.fig']);%, 'fig');
     end
