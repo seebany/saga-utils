@@ -28,14 +28,20 @@ if ~isempty(navfilestruct)
         navfile = navfilestruct(jj, :);
         % SDB 1/3/20 add check for existing but empty file.
         if navfile.bytes > 0
-        navfilename = dlmread([folder_path, 'txt', sep, navfile.name]);
-        st = datestr(gps2utc(navfilename(1, 1:2)), 'HHMM-');
-        se = datestr(gps2utc(navfilename(end, 1:2)), 'HHMM UT');
-        %         disp([navfile.name,' actually has data for ',st,se]);
-        NAV = [NAV; navfilename];
+	        navfilename = dlmread([folder_path, 'txt', sep, navfile.name]);
+		% SDB 12/9/20 add check for data with wrong timestamp recorded e.g., year 1980.
+		if navfilename(1,1) == year 
+		        st = datestr(gps2utc(navfilename(1, 1:2)), 'HHMM-');
+        		se = datestr(gps2utc(navfilename(end, 1:2)), 'HHMM UT');
+        		%         disp([navfile.name,' actually has data for ',st,se]);
+        		NAV = [NAV; navfilename];
+		end
         end
     end
-    
+    % SDB 12/9/20 Check if loaded file had right timestamps and was thus loaded in.
+    if isempty(NAV)
+    	NAVDATA = [];
+    else 
     NAV = [NAV; navfilename0];
     
     NAV = NAV(NAV(:, 1) <= 3640, :);
@@ -45,6 +51,7 @@ if ~isempty(navfilestruct)
     XYZECEF = NAV(:, 4:6);
     
     NAVDATA = [ORTW, ORTS, XYZECEF];
+    end
 else
     NAVDATA = [];
 end

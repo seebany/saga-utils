@@ -1,4 +1,11 @@
 function [MSP, MS4, FLTRDATA, CST, rcvr_op, tlim, splim, s4lim, signal] = scint_el_stackplot(cases_folder, home_dir, signal_type, doy, year, spmask, s4mask)
+%function [MSP, MS4, FLTRDATA, CST, rcvr_op, tlim, splim, s4lim, signal] = scint_el_stackplot(cases_folder, home_dir, signal_type, doy, year, spmask, s4mask)
+% This function reads CASES txinfo.log file to compute elevation of each satellite, crop scintillation below elevation mask angle, and then plot the elevation and sigma_phi data.
+% Written by Yang Su 2017
+% Commented by Seebany Datta-Barua
+% 9 Dec 2020
+% Commenting out the plotting part as unnecessary for now.
+
 sep = filesep;
 signal = getSignal(signal_type);
 %specify path
@@ -28,8 +35,9 @@ for rr = 1:size(rcvr_struct, 1)
     %         end
     %in_path0: /data1/public/Data/cases/pfrr/
     
+    % Back up by one hour to include the last hour of the prior day.
     offsett_str = datestr(datenum([str2num(year), 1, 0, 0, 0, 0])+(str2num(doy)) ...
-        -3600/24/3600, 'mm/dd/yyyy HH:MM:SS')
+        -3600/24/3600, 'mm/dd/yyyy HH:MM:SS');
     [~, offsett] = system(['date -ud ''', offsett_str, ''' +%Y%j%H']);
     offsetyear = offsett(1:4);
     offsetdoy = offsett(5:7);
@@ -51,6 +59,7 @@ for rr = 1:size(rcvr_struct, 1)
         doy, year, in_path, op_path, sep, signal_type, signal);
     %         size(DATA)
     REF = [REF; ref];
+    % The next functions write scintdata.mat, txinfo.mat, navdata.mat, ionodata.mat, channeldata.mat.
     read_navsol(offsetyear, offsetdoy, in_path_offset, ...
         doy, year, sep, in_path, op_path, signal);
     read_iono(doy, year, sep, in_path, op_path, signal);
@@ -78,6 +87,19 @@ else
     
     %% Plot elevation masked(el>30 deg) sigmaphi and save masked sigmaphi(with el>30 deg)
     [tlim, splim, s4lim] = el_and_masked_sigmaphi(cases_folder, home_dir, rcvr_op, doy, year, signal, spmask, s4mask);
+    % SDB 12/9/20 Check that data were valid to be loaded in (i.e., timestamps were correct year).
+    if isempty(tlim)
+    	MSP = [];
+    	FLTRDATA = [];
+    	CST = [];
+    	tlim = [];
+    	splim = [];
+    	MS4 = [];
+    	s4lim = [];
+    	return;
+    end
+	
+
     close all;
     
     %% Plot masked sigmaphi(with el>30 deg) before finding common scintillation times
@@ -285,8 +307,8 @@ else
     flag2 = dir([in_path2, 'bin', sep, '*', year, '_', doy, '_*.bin']);
 end
 
-flag3 = dir([in_path3, 'bin', sep, '*', year, '_', doy, '_*.bin'])
-flag4 = dir([in_path4, 'bin', sep, '*', year, '_', doy, '_*.bin'])
+flag3 = dir([in_path3, 'bin', sep, '*', year, '_', doy, '_*.bin']);
+flag4 = dir([in_path4, 'bin', sep, '*', year, '_', doy, '_*.bin']);
 
 if isempty(flag0) && isempty(flag1) && isempty(flag2) && isempty(flag3) && isempty(flag4)
     disp(['Unable to find any binaries for ', rcvr_name, ' on the server, please download manually']);
@@ -326,6 +348,7 @@ else
     logflagin = dir([in_path, 'txt', sep, '*', year, '_', doy, '_*.log']);
 end
 
+%keyboard
 if ~isempty(logflagin) && strcmp(in_path, in_path0)
     disp(['binaries already unpacked;locate logfiles in ', in_path, 'txt', sep]);
 elseif isempty(logflagout)

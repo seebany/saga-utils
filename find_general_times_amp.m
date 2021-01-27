@@ -15,7 +15,7 @@ prnlist = 1:32;
 for prn = prnlist
     prnmean(prn) = mean(MSP(MSP(:, 3) == prn, 2));
     prnstd(prn)= std(MSP(MSP(:, 3) == prn, 2));
-    disp(['The average sigmaphi for ', num2str(prn), ' is ', num2str(prnmean(prn))])
+%    disp(['The average S4 for ', num2str(prn), ' is ', num2str(prnmean(prn))])
     n(prn) = length(find(MSP(MSP(:, 3) == prn, 2) > dailymean));
 end
 
@@ -25,8 +25,7 @@ prnscint = 1:32;
 figure('visible', 'off');
 for prn = prnscint
     %     %specify a threshold for each PRN data, for example mean
-    spth_hr = prnmean(prn)+prnstd(prn);
-    %spth_hr = max([prnmean(prn), spth_hr0]);
+    spth_hr = max([prnmean(prn), spth_hr0]);
     %or a static threshold 0.2 amplitude
     %spth_hr = spth_hr0;
     for rr = 1:size(rcvr_op)
@@ -90,6 +89,13 @@ try
     TSP_hrv = sortrows(TSP_hrv, -6-1);
 catch
     return;
+end
+if length(rcvr_op(:,1))<4
+    TSP_hr=[];
+    TSP_hrv=[];
+else
+	TSP_hr = [TSP_hr, repmat(length(rcvr_op(:,1)), size(TSP_hr,1),1)];
+	TSP_hrv = [TSP_hrv, repmat(length(rcvr_op(:,1)), size(TSP_hrv,1),1)];
 end
 close;
 end

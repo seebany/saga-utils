@@ -1,4 +1,4 @@
-function textfile = download_madrigal_pfisr(year, month, day, kindat)
+function textfile = download_madrigal_pfisr(year, month, day, kindat, downloaddir)
 
 % Created by V. Sreenivash 2018
 % Commented by S. Datta-Barua
@@ -24,9 +24,16 @@ function textfile = download_madrigal_pfisr(year, month, day, kindat)
 % 
 % Parameters displayed: AZM, MIN, DAYNO, GDALT, GDLAT, HOUR, TR, NE, SEC, TI, TE, DAY, GLON, ELM, VO, RANGE, YEAR, UT, MONTH, KP
 
-textfile = ['Madrigal' datestr(datenum([year, month, day]), 'yymmdd') '.txt'];
+%lladodir='/data1/home/pllado/matfiles/madrigal_data/';
+switch kindat
+	case 5950
+		kindstr = '';
+	case 5951
+		kindstr = 'ac';
+end
+textfile = [downloaddir,'Madrigal' kindstr datestr(datenum([year, month, day]), 'yymmdd') '.txt'];
 %textfile = 'Madrigal13-15_ac_part2.txt';
-
+%keyboard
 globalIsprint('http://isr.sri.com/madrigal', ...
  'AZM,MIN,DAYNO,GDALT,GDLAT,HOUR,TR,NE,SEC,TI,TE,DAY,GLON,ELM,VO,RANGE,YEAR,UT,MONTH,KP', ...
  textfile, ...
@@ -39,4 +46,4 @@ globalIsprint('http://isr.sri.com/madrigal', ...
  '', ...        % Optional Filters.  To select see comments in globalIsprint.m.
  kindat, ...%5951, ...%[5950], ...    % Optional Kinds of data.  ID 5950 is "long pulse (480)". 5951 is "Alternating Code (AC16-30)"
  '', ...        % Optional Experiment name.
- '')            % Optional File description.
+ '');        % Optional File description.

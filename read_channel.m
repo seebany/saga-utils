@@ -10,13 +10,22 @@ if ~isempty(channelfilestruct)
     CHANNEL = [];
     for jj = 1:size(channelfilestruct, 1)
         channelfile = channelfilestruct(jj, :);
+        if channelfile.bytes==0
+            continue
+        else
         channelfilename = dlmread([folder_path, 'txt', sep, channelfile.name]);
-        st = datestr(gps2utc(channelfilename(1, 1:2)), 'HHMM-');
-        se = datestr(gps2utc(channelfilename(end, 1:2)), 'HHMM UT');
-        %         disp([channelfile.name,' actually has data for ',st,se]);
-        CHANNEL = [CHANNEL; channelfilename];
+	% SDB 12/9/20 Put in logic to check that timestamps on data are correct.
+	if channelfilename(1,1) == year
+	        st = datestr(gps2utc(channelfilename(1, 1:2)), 'HHMM-');
+	        se = datestr(gps2utc(channelfilename(end, 1:2)), 'HHMM UT');
+		%                 disp([channelfile.name,' actually has data for ',st,se]);
+	        CHANNEL = [CHANNEL; channelfilename];
+        end
+        end
     end
-    
+    if size(CHANNEL,1)==0
+        CHANNELDATA=[];
+    else
     CHANNEL = CHANNEL(CHANNEL(:, 3) <= 3640, :);
     CHANNEL = sortrows(CHANNEL, [3, 4, 5]);
     ORTW = CHANNEL(:, 3);
@@ -30,6 +39,7 @@ if ~isempty(channelfilestruct)
     
     CHANNELDATA = [ORTW, ORTS, CARRIER, PSEUDORANGE, ISVALID, CYCLESLIPQ, STYPE, PRN];
     %     unique(PRN,'stable')
+    end
 else
     CHANNELDATA = [];
 end

@@ -23,15 +23,24 @@ if ~isempty(scintfilestruct)
     for jj = 1:size(scintfilestruct, 1)
         scintfile = scintfilestruct(jj, :);
     % SDB 1/3/20 insert a check for a file that exists but is empty, e.g.,
-    % 2019/367/grid161/txt/scint_dataout_2019_357_0700.log has 0 bytes.
+    % 2019/357/grid161/txt/scint_dataout_2019_357_0700.log has 0 bytes.
     if scintfile.bytes > 0
         scintfilename = dlmread(strcat([folder_path, 'txt', sep, scintfile.name]));
-        %         st = datestr(gps2utc(scintfilename(1,1:2)),'HHMM-');
-        %         se = datestr(gps2utc(scintfilename(end,1:2)),'HHMM UT');
-        %         disp([scintfile.name,' actually has data for ',st,se]);
-        SCINT = [SCINT; scintfilename];
+	% SDB 12/9/20 insert a check that the timestamps in the data are correct, i.e., match the year.
+	if scintfilename(1,1) == year
+	        %         st = datestr(gps2utc(scintfilename(1,1:2)),'HHMM-');
+	        %         se = datestr(gps2utc(scintfilename(end,1:2)),'HHMM UT');
+	        %         disp([scintfile.name,' actually has data for ',st,se]);
+	        SCINT = [SCINT; scintfilename];
+	end
     end
     end
+    % SDB 12/9/20 Check that the scintillation data were correct and loaded in.
+    if isempty(SCINT)
+    	DATA = [];
+    	REFPRN = [];
+    	scfile = [];
+    else
     SCINT = [SCINT; scintfilename0];
     
     size(find(SCINT(:, 1) > 3640));
@@ -60,6 +69,7 @@ if ~isempty(scintfilestruct)
     %     gps2utc(DATA(1:10   ,1:2))
     %     keyboard;
     % DATA = sortrows(DATA,4);
+    end
 else
     DATA = [];
     REFPRN = [];
@@ -93,11 +103,18 @@ if ~isempty(azelfilestruct)
     for jj = 1:size(azelfilestruct, 1)
         azelfile = azelfilestruct(jj, :);
         azelfilename = dlmread(strcat([folder_path, 'txt', sep, azelfile.name]));
+	% Check for correct timestamps in data, namely, year.
+	if azelfilename(1,1) == year
         st = datestr(gps2utc(azelfilename(1, 1:2)), 'HHMM-');
         se = datestr(gps2utc(azelfilename(end, 1:2)), 'HHMM UT');
         %         disp([azelfile.name,' actually has data for ',st,se]);
         AZEL = [AZEL; azelfilename];
+	end
     end
+
+    if isempty(AZEL)
+	DATA_el = [];
+    else	
     AZEL = [AZEL; azelfilename0];
     
     size(find(AZEL(:, 1) > 3640))
@@ -120,6 +137,7 @@ if ~isempty(azelfilestruct)
     
     DATA_el = [ORTW_EL, ORTS_EL, EL, PRN_EL, AZ];
     % DATA = sortrows(DATA,4);
+    end
 else
     DATA_el = [];
 end

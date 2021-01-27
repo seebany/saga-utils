@@ -1,7 +1,17 @@
 function [mega_t, TSP_hr, TSP_hrv] = find_general_times(MSP, rcvr_op, spth_hr)
+%function [mega_t, TSP_hr, TSP_hrv] = find_general_times(MSP, rcvr_op, spth_hr)
+% Finds a list of times for which sigma_phi exceeds the threshold.
+% Input data matrix MSP contains all receivers.
+% rcvr_op is cell array of receiver names
+% spth_hr is the sigma_phi threshold desired.
+% Outputs mega_t: a num_prns cell array containing the list of common times.
+% TSP_hr: for data from 3 or more rxs falling within the common time of a duration of at least 10 elements (at 0.01 s cadence, this means 0.1 s), an array [prn, datenum tstart, datenum tend,duration (number of points), median time?, length(TSP), numrxs]. 
+% TSP_hrv: for data from 3 or more rxs falling within the common time of a duration of at least 10 elements, an array [prn, starthr, startmin, endhr, endmin, duration, median, length, numrxs].
+
 % load test.mat;
 %[MSP] = [time, scintillaiton indices, prn, rx]
 %daily average sigmaphi
+% This appears to be mean over all rxs, all prns. SDB 11/16/20.
 dailymean = mean(MSP(:, 2));
 MSP = sortrows(MSP, 1);
 spth_hr0 = spth_hr;
@@ -14,7 +24,7 @@ TSP_hrv = [];
 prnlist = 1:32;
 for prn = prnlist
     prnmean(prn) = mean(MSP(MSP(:, 3) == prn, 2));
-    disp(['The average sigmaphi for ', num2str(prn), ' is ', num2str(prnmean(prn))])
+    %disp(['The average sigmaphi for ', num2str(prn), ' is ', num2str(prnmean(prn))])
     n(prn) = length(find(MSP(MSP(:, 3) == prn, 2) > dailymean));
 end
 
@@ -64,6 +74,7 @@ for prn = prnscint
         TRX{rr} = T';
         datetick('x', 'HH:MM');
     end
+    % Find common times (across array?)
     t = find_common_times(TRX);
     mega_t{prn, :} = t;
     
@@ -88,6 +99,16 @@ try
     TSP_hrv = sortrows(TSP_hrv, -6-1);
 catch
     return;
+end
+
+% Here is where the requirement that there be three or more rxs is enforced.
+% Does not exist in the version used to run Vaishnavi's result.
+if length(rcvr_op(:,1))<4
+    TSP_hr=[];
+    TSP_hrv=[];
+else
+	TSP_hr = [TSP_hr, repmat(length(rcvr_op(:,1)), size(TSP_hr,1),1)];
+	TSP_hrv = [TSP_hrv, repmat(length(rcvr_op(:,1)), size(TSP_hrv,1),1)];
 end
 close;
 end

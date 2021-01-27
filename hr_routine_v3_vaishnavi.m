@@ -13,7 +13,7 @@ cases_folder = '/data1/public/Data/cases/pfrr/';
 %case_folder = '/data1/public/Data/cases/calg/';
 
 %where output data and plots are stored
-home_dir = '/data1/home/ysu27/';
+home_dir = '/data1/home/pllado/matfiles';
 
 %find yesterday in doy
 comm = 'date -u -d "a day ago" +%j';

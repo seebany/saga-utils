@@ -129,7 +129,7 @@ for iii = pairs(validind)
     end
 end
 
-events = sortrows(events, [-4, 2]);
+events = sortrows(events, [-4 2]);
 events = events(events(:, end) == max(events(:, 4)), :);
 
 legend([h_scatter, h_mean], {'value', 'mean'});

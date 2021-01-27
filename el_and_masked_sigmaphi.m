@@ -1,4 +1,11 @@
 function [tlim, splim, s4lim] = el_and_masked_sigmaphi(cases_folder, home_dir, rcvr_op, doy, year, signal, spmask, s4mask)
+%function [tlim, splim, s4lim] = el_and_masked_sigmaphi(cases_folder, home_dir, rcvr_op, doy, year, signal, spmask, s4mask)
+% Function that plots two 8x2 subplots of elevation vs time for each receiver.
+% Written by Yang Su 2017
+% Commented by Seebany Datta-Barua 9 Dec 2020
+% Some datasets have the timestamp in the filename but the wrong date (i.e., year 1980) in the file data itself.
+% Need logic to skip these data before even getting to this step.
+
 sep = filesep;
 
 %% Plot elevation and elevation-filtered sigmaphi prn by prn for all receivers
@@ -123,3 +130,4 @@ fig_1 = strcat(op_path, fig_name, '_fig1', '.eps');
 fig_2 = strcat(op_path, fig_name, '_fig2', '.eps');
 saveas(fig1, fig_1, 'epsc2');
 saveas(fig2, fig_2, 'epsc2');
+end
